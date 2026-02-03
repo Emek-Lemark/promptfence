@@ -28,7 +28,8 @@
     const preset = PromptFencePresets[presetId];
     if (!preset) return;
 
-    presetDescription.textContent = preset.description;
+    // Show "Why it matters" explanation if available, otherwise fall back to description
+    presetDescription.textContent = preset.whyItMatters || preset.description;
 
     // Update rules preview
     let html = '<h4>Current Rules</h4>';

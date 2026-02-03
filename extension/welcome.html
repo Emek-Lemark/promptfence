@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptFence — Your Personal AI Safety Layer</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--pf-font-family);
+      background: linear-gradient(135deg, var(--pf-surface) 0%, var(--pf-surface-muted) 100%);
+      min-height: 100vh;
+      color: var(--pf-text-primary);
+      line-height: var(--pf-line-height-relaxed);
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px var(--pf-space-6);
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo {
+      font-size: 64px;
+      margin-bottom: var(--pf-space-4);
+    }
+
+    .header h1 {
+      font-size: var(--pf-font-size-2xl);
+      font-weight: var(--pf-font-bold);
+      color: var(--pf-text-primary);
+      margin-bottom: var(--pf-space-2);
+    }
+
+    .header .tagline {
+      font-size: var(--pf-font-size-lg);
+      color: var(--pf-text-muted);
+      font-weight: var(--pf-font-normal);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--pf-bg);
+      border-radius: var(--pf-radius-lg);
+      padding: var(--pf-space-8);
+      margin-bottom: var(--pf-space-6);
+      box-shadow: var(--pf-shadow-md);
+    }
+
+    .section h2 {
+      font-size: var(--pf-font-size-xl);
+      font-weight: var(--pf-font-semibold);
+      color: var(--pf-text-primary);
+      margin-bottom: var(--pf-space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--pf-space-3);
+    }
+
+    .section h2 .icon {
+      font-size: 24px;
+    }
+
+    .section p {
+      font-size: var(--pf-font-size-md);
+      color: var(--pf-text-secondary);
+      margin-bottom: var(--pf-space-4);
+    }
+
+    .section p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Feature list */
+    .feature-list {
+      list-style: none;
+      margin-top: var(--pf-space-5);
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--pf-space-3);
+      padding: var(--pf-space-3) 0;
+      border-bottom: 1px solid var(--pf-border-muted);
+    }
+
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .feature-list .icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      width: 28px;
+      text-align: center;
+    }
+
+    .feature-list strong {
+      display: block;
+      font-size: var(--pf-font-size-md);
+      color: var(--pf-text-primary);
+      margin-bottom: var(--pf-space-1);
+    }
+
+    .feature-list span {
+      font-size: var(--pf-font-size-base);
+      color: var(--pf-text-muted);
+    }
+
+    /* Preset cards */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--pf-space-4);
+      margin-top: var(--pf-space-5);
+    }
+
+    .preset-card {
+      background: var(--pf-surface);
+      border: 1px solid var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: var(--pf-space-5);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .preset-card:hover {
+      border-color: var(--pf-border-hover);
+      box-shadow: var(--pf-shadow-sm);
+    }
+
+    .preset-card h3 {
+      font-size: var(--pf-font-size-md);
+      font-weight: var(--pf-font-semibold);
+      color: var(--pf-text-primary);
+      margin-bottom: var(--pf-space-2);
+    }
+
+    .preset-card p {
+      font-size: var(--pf-font-size-sm);
+      color: var(--pf-text-muted);
+      margin: 0;
+    }
+
+    .preset-card .badge {
+      display: inline-block;
+      font-size: var(--pf-font-size-xs);
+      font-weight: var(--pf-font-medium);
+      padding: var(--pf-space-1) var(--pf-space-2);
+      border-radius: var(--pf-radius-xs);
+      margin-top: var(--pf-space-3);
+    }
+
+    .preset-card .badge.recommended {
+      background: var(--pf-accent-light);
+      color: var(--pf-accent-text);
+    }
+
+    .preset-card .badge.strict {
+      background: var(--pf-warn-bg);
+      color: var(--pf-warn-text);
+    }
+
+    /* Trust section */
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--pf-space-6);
+      margin-top: var(--pf-space-5);
+      text-align: center;
+    }
+
+    .trust-item .icon {
+      font-size: 32px;
+      margin-bottom: var(--pf-space-2);
+    }
+
+    .trust-item strong {
+      display: block;
+      font-size: var(--pf-font-size-base);
+      color: var(--pf-text-primary);
+      margin-bottom: var(--pf-space-1);
+    }
+
+    .trust-item span {
+      font-size: var(--pf-font-size-sm);
+      color: var(--pf-text-muted);
+    }
+
+    /* CTA */
+    .cta {
+      text-align: center;
+      margin-top: var(--pf-space-8);
+    }
+
+    .cta-btn {
+      display: inline-block;
+      background: var(--pf-accent);
+      color: white;
+      font-size: var(--pf-font-size-md);
+      font-weight: var(--pf-font-medium);
+      padding: var(--pf-space-3) var(--pf-space-8);
+      border-radius: var(--pf-radius-sm);
+      text-decoration: none;
+      transition: background 0.15s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .cta-btn:hover {
+      background: var(--pf-accent-hover);
+    }
+
+    .cta-btn:focus {
+      outline: 2px solid var(--pf-focus-ring);
+      outline-offset: var(--pf-focus-ring-offset);
+    }
+
+    .cta-link {
+      display: block;
+      margin-top: var(--pf-space-3);
+      font-size: var(--pf-font-size-base);
+      color: var(--pf-text-muted);
+    }
+
+    .cta-link a {
+      color: var(--pf-accent);
+      text-decoration: none;
+    }
+
+    .cta-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: var(--pf-space-6);
+      border-top: 1px solid var(--pf-border);
+    }
+
+    .footer p {
+      font-size: var(--pf-font-size-sm);
+      color: var(--pf-text-muted);
+    }
+
+    .footer a {
+      color: var(--pf-text-secondary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Dark mode - tokens handle this via CSS custom property overrides in design-tokens.css */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, var(--pf-bg) 0%, var(--pf-surface) 100%);
+      }
+
+      .section {
+        box-shadow: var(--pf-shadow-lg);
+      }
+
+      .preset-card:hover {
+        box-shadow: var(--pf-shadow-md);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .trust-grid {
+        grid-template-columns: 1fr;
+        gap: var(--pf-space-4);
+      }
+
+      .preset-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">🛡️</div>
+      <h1>PromptFence</h1>
+      <p class="tagline">Your personal AI safety layer</p>
+    </div>
+
+    <!-- What it does -->
+    <div class="section">
+      <h2><span class="icon">💡</span> What PromptFence Does</h2>
+      <p>
+        PromptFence is a lightweight browser extension that pauses and reviews your messages before they're sent to AI tools like ChatGPT, Claude, and Gemini.
+      </p>
+      <p>
+        When you paste text that looks like it contains sensitive data—emails, phone numbers, credit cards, passwords—PromptFence shows you what it found and gives you a chance to edit before sharing.
+      </p>
+    </div>
+
+    <!-- How it works -->
+    <div class="section">
+      <h2><span class="icon">⚙️</span> How It Works</h2>
+      <ul class="feature-list">
+        <li>
+          <span class="icon">📋</span>
+          <div>
+            <strong>Monitors paste events</strong>
+            <span>When you paste text into an AI chat, PromptFence scans it for sensitive patterns.</span>
+          </div>
+        </li>
+        <li>
+          <span class="icon">🔍</span>
+          <div>
+            <strong>Detects sensitive data</strong>
+            <span>Emails, phone numbers, IBANs, credit cards, addresses, and credentials.</span>
+          </div>
+        </li>
+        <li>
+          <span class="icon">⏸️</span>
+          <div>
+            <strong>Pauses for review</strong>
+            <span>Shows you what was detected and explains why it might be risky.</span>
+          </div>
+        </li>
+        <li>
+          <span class="icon">✏️</span>
+          <div>
+            <strong>You decide</strong>
+            <span>Edit your message, continue anyway (for warnings), or adjust settings.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Presets -->
+    <div class="section">
+      <h2><span class="icon">🎛️</span> Protection Presets</h2>
+      <p>
+        Choose a preset that matches how you use AI tools. Each preset balances protection and convenience differently.
+      </p>
+      <div class="preset-grid">
+        <div class="preset-card">
+          <h3>Personal Safety</h3>
+          <p>Balanced protection for everyday use. Warns often, blocks rarely.</p>
+          <span class="badge recommended">Recommended</span>
+        </div>
+        <div class="preset-card">
+          <h3>Finance</h3>
+          <p>Strict protection for financial data. Blocks IBANs and card numbers.</p>
+          <span class="badge strict">Strict</span>
+        </div>
+        <div class="preset-card">
+          <h3>Health</h3>
+          <p>Privacy-focused for health contexts. Blocks contact details and addresses.</p>
+          <span class="badge strict">Strict</span>
+        </div>
+        <div class="preset-card">
+          <h3>Workplace</h3>
+          <p>Balanced protection for professional contexts. Warns on colleague data.</p>
+        </div>
+        <div class="preset-card">
+          <h3>Developer</h3>
+          <p>Focused on credentials. Relaxed on personal info, strict on secrets.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust -->
+    <div class="section">
+      <h2><span class="icon">🔒</span> Privacy & Trust</h2>
+      <p>
+        PromptFence is designed with your privacy as the top priority.
+      </p>
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="icon">🏠</div>
+          <strong>100% Local</strong>
+          <span>All detection runs in your browser</span>
+        </div>
+        <div class="trust-item">
+          <div class="icon">🚫</div>
+          <strong>No Data Sent</strong>
+          <span>Nothing leaves your device</span>
+        </div>
+        <div class="trust-item">
+          <div class="icon">📊</div>
+          <strong>No Analytics</strong>
+          <span>No tracking or telemetry</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <button class="cta-btn" id="open-settings">Open Settings</button>
+      <p class="cta-link">
+        Questions? Check the <a href="PRIVACY.md" target="_blank">Privacy Policy</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>PromptFence v1.0.0 — A personal AI safety layer</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('open-settings').addEventListener('click', function() {
+      if (chrome && chrome.runtime && chrome.runtime.openOptionsPage) {
+        chrome.runtime.openOptionsPage();
+      } else {
+        // Fallback for when accessed directly
+        window.location.href = 'options.html';
+      }
+    });
+  </script>
+</body>
+</html>

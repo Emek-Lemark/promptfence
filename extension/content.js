@@ -1,6 +1,22 @@
 // content.js - Paste event listener and DOM interaction
 // Store MVP: Local-only detection, no backend required
 
+/**
+ * ============================================================================
+ * TONE OF VOICE IMPLEMENTATION
+ * ============================================================================
+ *
+ * This file implements the tone system defined in DESIGN_NOTES.md:
+ * - Calm authority: confident messaging without apology
+ * - Non-assumptive: "appears to be" for patterns, direct for validated data
+ * - Educational: explains why, provides alternatives
+ * - User agency: always offers a path forward
+ *
+ * Modal copy is now pulled from PromptFencePresets and PromptFenceDataTypes
+ * defined in rules.js to ensure consistency.
+ * ============================================================================
+ */
+
 (function() {
   'use strict';
 
@@ -9,6 +25,8 @@
   // Local config (loaded from storage)
   let localConfig = null;
   let debugMode = false;
+  let hasSeenOnboarding = false;
+  let hasSeenFirstDetection = false;
 
   // Load config from storage
   function loadConfig() {
@@ -23,8 +41,11 @@
       }
     });
 
-    // Also check sync storage for settings
-    chrome.storage.sync.get(['preset', 'rules', 'enableWarn', 'enableBlock', 'debugMode'], function(result) {
+    // Also check sync storage for settings and onboarding state
+    chrome.storage.sync.get(['preset', 'rules', 'enableWarn', 'enableBlock', 'debugMode', 'hasSeenOnboarding', 'hasSeenFirstDetection'], function(result) {
+      hasSeenOnboarding = result.hasSeenOnboarding === true;
+      hasSeenFirstDetection = result.hasSeenFirstDetection === true;
+
       if (result.preset || result.rules) {
         // Build config from sync storage
         const preset = result.preset || 'personal';
@@ -52,6 +73,11 @@
           debugMode: false
         };
       }
+
+      // Show onboarding if first time
+      if (!hasSeenOnboarding) {
+        showOnboardingModal();
+      }
     });
   }
 
@@ -65,6 +91,14 @@
       debugMode = localConfig?.debugMode === true;
       if (debugMode) {
         console.log('[PromptFence] Config updated:', localConfig);
+      }
+    }
+    if (areaName === 'sync') {
+      if (changes.hasSeenOnboarding) {
+        hasSeenOnboarding = changes.hasSeenOnboarding.newValue;
+      }
+      if (changes.hasSeenFirstDetection) {
+        hasSeenFirstDetection = changes.hasSeenFirstDetection.newValue;
       }
     }
   });
@@ -180,11 +214,115 @@
   }
 
   /**
+   * Gets the current preset configuration.
+   * @returns {Object} - The preset object from PromptFencePresets
+   */
+  function getCurrentPreset() {
+    const presetId = localConfig?.preset || 'personal';
+    return PromptFencePresets[presetId] || PromptFencePresets.personal;
+  }
+
+  /**
+   * Gets data type information from PromptFenceDataTypes.
+   * @param {string} typeId - The type ID (EMAIL, PHONE, etc.)
+   * @returns {Object} - The data type definition
+   */
+  function getDataTypeInfo(typeId) {
+    return PromptFenceDataTypes[typeId] || {
+      id: typeId,
+      label: typeId,
+      confidence: 'pattern',
+      detected: 'Detected: ' + typeId,
+      risk: 'This data type may be sensitive.',
+      tip: 'Consider removing or replacing this information.',
+      example: '[redacted]'
+    };
+  }
+
+  /**
+   * Shows the first-run onboarding modal.
+   * Explains what PromptFence does in under 30 seconds.
+   */
+  function showOnboardingModal() {
+    const existingModal = document.getElementById('promptfence-modal');
+    if (existingModal) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'promptfence-modal';
+    overlay.className = 'promptfence-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'promptfence-modal promptfence-onboarding';
+
+    modal.innerHTML = `
+      <div class="promptfence-icon-welcome">🛡️</div>
+      <h2 class="promptfence-title promptfence-title-welcome">Welcome to PromptFence</h2>
+      <p class="promptfence-message">
+        PromptFence pauses and reviews your messages before they're sent to AI tools—helping you catch sensitive data before it's shared.
+      </p>
+      <div class="promptfence-features">
+        <div class="promptfence-feature">
+          <span class="promptfence-feature-icon">🔍</span>
+          <div>
+            <strong>When it intervenes</strong>
+            <p>Only when your text looks like it contains sensitive data—emails, phone numbers, card numbers, etc.</p>
+          </div>
+        </div>
+        <div class="promptfence-feature">
+          <span class="promptfence-feature-icon">⚙️</span>
+          <div>
+            <strong>How strict it is</strong>
+            <p>Depends on your preset. Personal Safety is balanced; Finance and Health are stricter.</p>
+          </div>
+        </div>
+        <div class="promptfence-feature">
+          <span class="promptfence-feature-icon">🔒</span>
+          <div>
+            <strong>100% Local</strong>
+            <p>Everything runs in your browser. Nothing is sent anywhere.</p>
+          </div>
+        </div>
+      </div>
+      <div class="promptfence-btn-group">
+        <button class="promptfence-btn promptfence-btn-primary" id="promptfence-onboard-continue">Got it</button>
+        <button class="promptfence-btn promptfence-btn-link" id="promptfence-onboard-settings">Open Settings</button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    document.getElementById('promptfence-onboard-continue').onclick = function() {
+      chrome.storage.sync.set({ hasSeenOnboarding: true });
+      hasSeenOnboarding = true;
+      overlay.remove();
+    };
+
+    document.getElementById('promptfence-onboard-settings').onclick = function() {
+      chrome.storage.sync.set({ hasSeenOnboarding: true });
+      hasSeenOnboarding = true;
+      chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+      overlay.remove();
+    };
+
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        chrome.storage.sync.set({ hasSeenOnboarding: true });
+        hasSeenOnboarding = true;
+        overlay.remove();
+      }
+    });
+  }
+
+  /**
    * Creates and shows the modal (WARN or BLOCK mode).
+   * Uses preset-specific copy from rules.js for consistent tone.
+   *
    * @param {string[]} detectedTypes - Array of detected data types
    * @param {string} action - 'WARN' or 'BLOCK'
+   * @param {function} onContinue - Callback if user chooses to continue (WARN only)
    */
-  function showModal(detectedTypes, action) {
+  function showModal(detectedTypes, action, onContinue) {
     // Remove any existing modal
     const existingModal = document.getElementById('promptfence-modal');
     if (existingModal) {
@@ -192,6 +330,18 @@
     }
 
     const isBlock = action === 'BLOCK';
+    const preset = getCurrentPreset();
+    const isFinancePreset = preset.id === 'finance';
+
+    // Get preset-specific modal copy
+    const modalCopy = isBlock ? preset.modal.block : preset.modal.warn;
+    const guidance = preset.guidance;
+
+    // Mark first detection as seen
+    if (!hasSeenFirstDetection) {
+      chrome.storage.sync.set({ hasSeenFirstDetection: true });
+      hasSeenFirstDetection = true;
+    }
 
     // Create modal overlay
     const overlay = document.createElement('div');
@@ -200,69 +350,106 @@
 
     // Create modal content
     const modal = document.createElement('div');
-    modal.className = 'promptfence-modal';
-
-    // Title
-    const title = document.createElement('h2');
-    title.className = 'promptfence-title';
-    title.textContent = isBlock ? 'Paste Blocked' : 'Sensitive Data Warning';
-    if (!isBlock) {
-      title.style.color = '#f59e0b';
+    modal.className = 'promptfence-modal' + (isBlock ? ' promptfence-modal-block' : ' promptfence-modal-warn');
+    if (isFinancePreset && isBlock) {
+      modal.classList.add('promptfence-modal-finance');
     }
 
-    // Message
+    // Icon - informational, not alarming
+    const icon = document.createElement('div');
+    icon.className = 'promptfence-modal-icon';
+    icon.textContent = isBlock ? '⏸️' : '💡';
+
+    // Title - from preset copy
+    const title = document.createElement('h2');
+    title.className = 'promptfence-title';
+    title.textContent = modalCopy.title;
+
+    // Message - from preset copy
     const message = document.createElement('p');
     message.className = 'promptfence-message';
-    message.textContent = isBlock
-      ? 'The pasted content contains sensitive data that should not be shared with AI assistants:'
-      : 'The pasted content contains sensitive data. Please review before sharing:';
+    message.textContent = modalCopy.body;
 
-    // Detected types list with explanations
-    const typesList = document.createElement('ul');
+    // Detected types list with data type info from rules.js
+    const typesList = document.createElement('div');
     typesList.className = 'promptfence-types';
-    detectedTypes.forEach(function(type) {
-      const li = document.createElement('li');
-      const typeName = typeof getTypeName === 'function' ? getTypeName(type) : type;
-      const explanation = typeof getTypeExplanation === 'function' ? getTypeExplanation(type) : '';
-      li.innerHTML = `<strong>${typeName}</strong>`;
-      if (explanation) {
-        const hint = document.createElement('div');
-        hint.style.fontSize = '12px';
-        hint.style.color = '#6b7280';
-        hint.style.marginTop = '2px';
-        hint.textContent = explanation;
-        li.appendChild(hint);
-      }
-      typesList.appendChild(li);
+
+    detectedTypes.forEach(function(typeId) {
+      const typeInfo = getDataTypeInfo(typeId);
+      const typeItem = document.createElement('div');
+      typeItem.className = 'promptfence-type-item';
+
+      typeItem.innerHTML = `
+        <div class="promptfence-type-header">
+          <strong>${typeInfo.label}</strong>
+        </div>
+        <div class="promptfence-type-risk">${typeInfo.risk}</div>
+        <div class="promptfence-type-tip">
+          <span class="promptfence-tip-label">Tip:</span> ${typeInfo.tip}
+        </div>
+      `;
+      typesList.appendChild(typeItem);
     });
+
+    // Preset-specific guidance
+    const guidanceBox = document.createElement('div');
+    guidanceBox.className = 'promptfence-guidance';
+    guidanceBox.innerHTML = `
+      <p>${guidance.message}</p>
+      <p class="promptfence-guidance-emphasis">${guidance.emphasis}</p>
+    `;
 
     // Button container
     const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.gap = '10px';
-    btnContainer.style.marginTop = '16px';
+    btnContainer.className = 'promptfence-btn-group';
 
-    // Close/OK button
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'promptfence-close';
-    closeBtn.textContent = isBlock ? 'OK' : 'I Understand';
-    closeBtn.onclick = function() {
+    // Primary action: Edit message (always available)
+    const editBtn = document.createElement('button');
+    editBtn.className = 'promptfence-btn promptfence-btn-primary';
+    editBtn.textContent = 'Edit message';
+    editBtn.onclick = function() {
       overlay.remove();
     };
-    btnContainer.appendChild(closeBtn);
+    btnContainer.appendChild(editBtn);
+
+    if (!isBlock) {
+      // Secondary action (WARN only): Continue anyway
+      const continueBtn = document.createElement('button');
+      continueBtn.className = 'promptfence-btn promptfence-btn-muted';
+      continueBtn.textContent = 'Continue anyway';
+      continueBtn.onclick = function() {
+        overlay.remove();
+        if (typeof onContinue === 'function') {
+          onContinue();
+        }
+      };
+      btnContainer.appendChild(continueBtn);
+    }
+
+    // Settings link (always available)
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'promptfence-btn promptfence-btn-link';
+    settingsBtn.textContent = 'Settings';
+    settingsBtn.onclick = function() {
+      chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+      overlay.remove();
+    };
+    btnContainer.appendChild(settingsBtn);
 
     // Assemble modal
+    modal.appendChild(icon);
     modal.appendChild(title);
     modal.appendChild(message);
     modal.appendChild(typesList);
+    modal.appendChild(guidanceBox);
     modal.appendChild(btnContainer);
     overlay.appendChild(modal);
 
     // Add to page
     document.body.appendChild(overlay);
 
-    // Focus close button for accessibility
-    closeBtn.focus();
+    // Focus primary button for accessibility
+    editBtn.focus();
 
     // Close on Escape key
     function handleEscape(e) {

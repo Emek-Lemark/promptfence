@@ -37,6 +37,13 @@ chrome.runtime.onStartup.addListener(function() {
  * Store MVP: Only handle local config operations.
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  // Open options page (called from modals)
+  if (message.type === 'OPEN_OPTIONS') {
+    chrome.runtime.openOptionsPage();
+    sendResponse({ ok: true });
+    return false;
+  }
+
   // Get current config from sync storage
   if (message.type === 'GET_CONFIG') {
     chrome.storage.sync.get(['preset', 'rules', 'enableWarn', 'enableBlock', 'debugMode'], function(result) {

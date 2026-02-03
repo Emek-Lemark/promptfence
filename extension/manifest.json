@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "PromptFence (Personal)",
   "version": "1.0.0",
-  "description": "Protects your sensitive data from being pasted into AI chat prompts. Detects emails, phones, IBANs, credit cards, and more.",
+  "description": "Your personal AI safety layer. Pauses and reviews messages before they're sent to AI tools, helping you catch sensitive data before it's shared.",
   "permissions": [
     "storage"
   ],
@@ -28,5 +28,9 @@
   "background": {
     "service_worker": "service_worker.js"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "action": {
+    "default_popup": "welcome.html",
+    "default_title": "PromptFence"
+  }
 }
