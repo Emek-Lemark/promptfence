@@ -188,6 +188,53 @@ curl https://<your-domain>/api/health
 
 ---
 
+---
+
+## Friend Testing Checklist
+
+Quick reference for friends testing the demo.
+
+### URLs to Visit
+
+| URL | Purpose |
+|-----|---------|
+| `/demo` | Start here - entry point with health check |
+| `/signup` | Create admin account, get Install Code |
+| `/login` | Login to existing account |
+| `/setup` | Configure EMAIL/PHONE/IBAN rules |
+| `/events` | View WARN/BLOCK events from extension |
+| `/users` | View users with extension installed |
+
+**Production URL:** `https://promptfenceapp-production.up.railway.app`
+
+### What "Success" Looks Like
+
+1. **Signup works**: You see Install Code after registering
+2. **Extension connects**: Options page shows green "OK" status
+3. **Paste intercepted**: Modal appears when pasting `test@example.com` on chatgpt.com
+4. **Event recorded**: `/events` page shows the WARN or BLOCK event within seconds
+
+### Common Mistakes
+
+| Problem | Solution |
+|---------|----------|
+| Extension shows "Config fetch failed" | API Base URL wrong - use full URL with `https://` |
+| Extension shows "Invalid install code" | Code must be exactly 8 characters, uppercase |
+| No modal on paste | Refresh the AI page after configuring extension |
+| Events not appearing | Wrong Install Code - must match the org you signed up with |
+| "Unauthorized" on dashboard | Session expired - login again at `/login` |
+| Extension not loading | Enable Developer mode in `chrome://extensions` |
+
+### Test Data to Paste
+
+```
+Email: test@example.com
+Phone: +1 555 123 4567
+IBAN: DE89370400440532013000
+```
+
+---
+
 ## Notes
 
 - Auth tokens stored in localStorage (TODO: httpOnly cookies for production)
