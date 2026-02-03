@@ -6,6 +6,11 @@
 
   const EXTENSION_VERSION = '1.0.0';
 
+  // DEBUG_MODE: Set to true ONLY for local development/troubleshooting.
+  // When enabled, raw clipboard content may be logged to console.
+  // Default OFF - never enable in production.
+  const DEBUG_MODE = false;
+
   // Org config from backend (loaded async)
   let orgConfig = null;
 
@@ -305,6 +310,9 @@
       postEvent('BLOCK', types);
 
       console.log('[PromptFence] Blocked paste containing:', types.join(', '));
+      if (DEBUG_MODE) {
+        console.log('[PromptFence DEBUG] Blocked text:', text.substring(0, 200));
+      }
     } else if (action === 'WARN') {
       // Allow paste but show warning
       showModal(types, 'WARN');
@@ -313,6 +321,9 @@
       postEvent('WARN', types);
 
       console.log('[PromptFence] Warning for paste containing:', types.join(', '));
+      if (DEBUG_MODE) {
+        console.log('[PromptFence DEBUG] Warned text:', text.substring(0, 200));
+      }
     }
   }
 

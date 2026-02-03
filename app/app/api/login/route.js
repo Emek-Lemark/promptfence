@@ -2,9 +2,28 @@
 import { NextResponse } from 'next/server';
 const { getDb } = require('@/lib/db');
 const { verifyPassword, generateToken } = require('@/lib/auth');
+const { checkRateLimit, checkBodySize } = require('@/lib/rateLimit');
 
 export async function POST(request) {
   try {
+    // Rate limit check (demo-only, resets on restart)
+    const rateLimit = checkRateLimit(request);
+    if (rateLimit.limited) {
+      return NextResponse.json(
+        { error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again later.' } },
+        { status: 429 }
+      );
+    }
+
+    // Body size check
+    const bodySize = checkBodySize(request);
+    if (bodySize.oversized) {
+      return NextResponse.json(
+        { error: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body too large' } },
+        { status: 413 }
+      );
+    }
+
     const body = await request.json();
     const { email, password } = body;
 

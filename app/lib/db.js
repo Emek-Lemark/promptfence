@@ -3,20 +3,20 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Database file location
-const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'promptfence.db');
-
-// Ensure data directory exists
-const dataDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Initialize database connection
+// Initialize database connection (lazy)
 let db = null;
 
 function getDb() {
   if (!db) {
+    // Resolve DB path at runtime to avoid build-time env var access
+    const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'promptfence.db');
+
+    // Ensure data directory exists
+    const dataDir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
     initSchema();

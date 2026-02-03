@@ -1,0 +1,10 @@
+# Build artifacts
+promptfence-extension.zip
+node_modules/
+dist/
+
+# OS
+.DS_Store
+
+# Env
+.env*

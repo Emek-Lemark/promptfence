@@ -4,13 +4,22 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('./db');
 
-// In production, JWT_SECRET must be set via environment variable
-const JWT_SECRET = process.env.JWT_SECRET || (
-  process.env.NODE_ENV === 'production'
-    ? (() => { throw new Error('JWT_SECRET environment variable is required in production'); })()
-    : 'promptfence-dev-secret-change-in-production'
-);
 const JWT_EXPIRY = '7d';
+
+// Lazy-load JWT_SECRET at runtime to avoid build-time errors
+let _jwtSecret = null;
+function getJwtSecret() {
+  if (_jwtSecret) return _jwtSecret;
+
+  _jwtSecret = process.env.JWT_SECRET;
+  if (!_jwtSecret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    }
+    _jwtSecret = 'promptfence-dev-secret-change-in-production';
+  }
+  return _jwtSecret;
+}
 
 // Password hashing
 async function hashPassword(password) {
@@ -35,7 +44,7 @@ function generateToken(userId, orgId, role) {
 
   return jwt.sign(
     { userId, orgId, role, jti: sessionId },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: JWT_EXPIRY }
   );
 }
@@ -43,7 +52,7 @@ function generateToken(userId, orgId, role) {
 // JWT token verification
 function verifyToken(token) {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
 
     // Check session exists and not expired
     const db = getDb();
