@@ -3,11 +3,18 @@
   "name": "PromptFence",
   "version": "1.0.0",
   "description": "Blocks pasting of sensitive data (emails, phones, IBANs) into AI chat prompts",
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://chat.openai.com/*",
     "https://chatgpt.com/*",
     "https://claude.ai/*",
-    "https://gemini.google.com/*"
+    "https://gemini.google.com/*",
+    "http://localhost:3000/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
+    "https://*/*"
   ],
   "content_scripts": [
     {
@@ -24,5 +31,6 @@
   ],
   "background": {
     "service_worker": "service_worker.js"
-  }
+  },
+  "options_page": "options.html"
 }
