@@ -1,4 +1,5 @@
 // src/logic.js - Pure functions for detection logic
+// Store MVP: Local-only detection, no backend required
 
 /**
  * Validates an IBAN using the mod-97 algorithm (ISO 7064).
@@ -46,45 +47,148 @@ function ibanIsValid(ibanRaw) {
 }
 
 /**
+ * Validates a credit card number using Luhn algorithm.
+ * @param {string} cardNumber - The card number (may contain spaces/dashes)
+ * @returns {boolean} - True if valid card number
+ */
+function isValidCreditCard(cardNumber) {
+  if (!cardNumber || typeof cardNumber !== 'string') {
+    return false;
+  }
+
+  // Remove spaces and dashes
+  const digits = cardNumber.replace(/[\s-]/g, '');
+
+  // Must be 13-19 digits
+  if (!/^\d{13,19}$/.test(digits)) {
+    return false;
+  }
+
+  // Luhn algorithm
+  let sum = 0;
+  let isEven = false;
+
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits[i], 10);
+
+    if (isEven) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+
+    sum += digit;
+    isEven = !isEven;
+  }
+
+  return sum % 10 === 0;
+}
+
+/**
  * Detects regulated identifiers in text.
  * @param {string} text - The text to scan
- * @returns {string[]} - Array of unique detected types: "EMAIL", "PHONE", "IBAN"
+ * @param {Object} enabledTypes - Which types to detect (default: all)
+ * @returns {string[]} - Array of unique detected types
  */
-function detectMatches(text) {
+function detectMatches(text, enabledTypes) {
   if (!text || typeof text !== 'string') {
     return [];
   }
 
+  // Default: detect all types
+  const enabled = enabledTypes || {
+    EMAIL: true,
+    PHONE: true,
+    IBAN: true,
+    CREDIT_CARD: true,
+    ADDRESS: true,
+    PASSWORD: true
+  };
+
   const hits = new Set();
 
   // EMAIL: pragmatic regex
-  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-  if (emailRegex.test(text)) {
-    hits.add('EMAIL');
+  if (enabled.EMAIL !== false) {
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    if (emailRegex.test(text)) {
+      hits.add('EMAIL');
+    }
   }
 
   // PHONE: candidate extraction + normalization
-  // Extract candidates that start/end with digit, contain digits and separators
-  const phoneCandidateRegex = /(\+?\d[\d\s().-]{6,}\d)/g;
-  const phoneCandidates = text.match(phoneCandidateRegex) || [];
-  for (const candidate of phoneCandidates) {
-    // Normalize: strip non-digits
-    const digits = candidate.replace(/\D/g, '');
-    // Valid phone: 8-15 digits
-    if (digits.length >= 8 && digits.length <= 15) {
-      hits.add('PHONE');
-      break;
+  if (enabled.PHONE !== false) {
+    const phoneCandidateRegex = /(\+?\d[\d\s().-]{6,}\d)/g;
+    const phoneCandidates = text.match(phoneCandidateRegex) || [];
+    for (const candidate of phoneCandidates) {
+      const digits = candidate.replace(/\D/g, '');
+      if (digits.length >= 8 && digits.length <= 15) {
+        hits.add('PHONE');
+        break;
+      }
     }
   }
 
   // IBAN: candidate regex + mod-97 validation
-  // Match 2 letters + 2 digits + 11-30 alphanumeric (with optional spaces)
-  const ibanCandidateRegex = /\b[A-Za-z]{2}[0-9]{2}(?:\s?[A-Za-z0-9]{4}){2,7}(?:\s?[A-Za-z0-9]{1,4})?\b/g;
-  const ibanMatches = text.match(ibanCandidateRegex) || [];
-  for (const candidate of ibanMatches) {
-    if (ibanIsValid(candidate)) {
-      hits.add('IBAN');
-      break;
+  if (enabled.IBAN !== false) {
+    const ibanCandidateRegex = /\b[A-Za-z]{2}[0-9]{2}(?:\s?[A-Za-z0-9]{4}){2,7}(?:\s?[A-Za-z0-9]{1,4})?\b/g;
+    const ibanMatches = text.match(ibanCandidateRegex) || [];
+    for (const candidate of ibanMatches) {
+      if (ibanIsValid(candidate)) {
+        hits.add('IBAN');
+        break;
+      }
+    }
+  }
+
+  // CREDIT_CARD: 13-19 digit sequences with Luhn validation
+  if (enabled.CREDIT_CARD !== false) {
+    // Match card-like patterns (with optional spaces/dashes)
+    const cardRegex = /\b(?:\d{4}[\s-]?){3,4}\d{1,4}\b/g;
+    const cardMatches = text.match(cardRegex) || [];
+    for (const candidate of cardMatches) {
+      if (isValidCreditCard(candidate)) {
+        hits.add('CREDIT_CARD');
+        break;
+      }
+    }
+  }
+
+  // ADDRESS: Basic heuristic for US/UK style addresses
+  if (enabled.ADDRESS !== false) {
+    // Look for street number + street name + common suffixes
+    const addressPatterns = [
+      /\b\d{1,5}\s+[A-Za-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Way|Place|Pl)\b/i,
+      // ZIP codes (US 5-digit or 5+4)
+      /\b\d{5}(?:-\d{4})?\b/,
+      // UK postcodes
+      /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i
+    ];
+
+    for (const pattern of addressPatterns) {
+      if (pattern.test(text)) {
+        hits.add('ADDRESS');
+        break;
+      }
+    }
+  }
+
+  // PASSWORD: Keywords that suggest credentials/secrets
+  if (enabled.PASSWORD !== false) {
+    const passwordKeywords = [
+      /\b(password|passwd|pwd)\s*[:=]\s*\S+/i,
+      /\b(api[_-]?key|apikey)\s*[:=]\s*\S+/i,
+      /\b(secret|token)\s*[:=]\s*\S+/i,
+      /\b(2fa|totp|otp)\s*[:=]?\s*\d{6}\b/i,
+      /\bsk[-_]live[-_][a-zA-Z0-9]+\b/,  // Stripe-style keys
+      /\b[a-zA-Z0-9]{32,}\b/  // Long alphanumeric strings (API keys)
+    ];
+
+    for (const pattern of passwordKeywords) {
+      if (pattern.test(text)) {
+        hits.add('PASSWORD');
+        break;
+      }
     }
   }
 
@@ -119,7 +223,6 @@ function ruleTriggers(hits, rules) {
     if (!rule.triggers || !Array.isArray(rule.triggers)) {
       continue;
     }
-    // Check if any hit matches any trigger in this rule
     const hasMatch = hits.some(hit => rule.triggers.includes(hit));
     if (hasMatch) {
       return rule;
@@ -129,12 +232,49 @@ function ruleTriggers(hits, rules) {
   return null;
 }
 
+/**
+ * Returns human-readable name for a detection type.
+ * @param {string} type - The detection type
+ * @returns {string} - Human-readable name
+ */
+function getTypeName(type) {
+  const names = {
+    EMAIL: 'Email Address',
+    PHONE: 'Phone Number',
+    IBAN: 'Bank Account (IBAN)',
+    CREDIT_CARD: 'Credit Card Number',
+    ADDRESS: 'Physical Address',
+    PASSWORD: 'Password/API Key/Secret'
+  };
+  return names[type] || type;
+}
+
+/**
+ * Returns explanation for why a type was detected.
+ * @param {string} type - The detection type
+ * @returns {string} - Explanation
+ */
+function getTypeExplanation(type) {
+  const explanations = {
+    EMAIL: 'Remove or redact the email address before pasting.',
+    PHONE: 'Remove or redact the phone number before pasting.',
+    IBAN: 'Remove or redact the bank account number before pasting.',
+    CREDIT_CARD: 'Never share credit card numbers with AI assistants.',
+    ADDRESS: 'Consider removing or generalizing the address.',
+    PASSWORD: 'Never share passwords, API keys, or secrets with AI assistants.'
+  };
+  return explanations[type] || 'Remove sensitive information before pasting.';
+}
+
 // Export for Node.js testing and browser content script
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     ibanIsValid,
+    isValidCreditCard,
     detectMatches,
     isAiDomain,
-    ruleTriggers
+    ruleTriggers,
+    getTypeName,
+    getTypeExplanation
   };
 }

@@ -7,12 +7,26 @@
     body {
       font-family: system-ui, -apple-system, sans-serif;
       padding: 20px;
-      max-width: 450px;
+      max-width: 500px;
       margin: 0 auto;
     }
     h1 {
-      font-size: 18px;
-      margin-bottom: 20px;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #6b7280;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    .section {
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #374151;
     }
     .form-group {
       margin-bottom: 16px;
@@ -21,33 +35,100 @@
       display: block;
       margin-bottom: 6px;
       font-weight: 500;
+      font-size: 14px;
     }
     .hint {
       font-size: 12px;
       color: #6b7280;
       margin-top: 4px;
     }
-    input[type="text"],
-    input[type="url"] {
+    select {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
     }
-    input[type="text"] {
-      font-family: monospace;
+    .toggle-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+    .toggle-label {
+      font-size: 14px;
+    }
+    .toggle-hint {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1d5db;
+      transition: 0.2s;
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.2s;
+      border-radius: 50%;
+    }
+    .toggle input:checked + .toggle-slider {
+      background-color: #2563eb;
+    }
+    .toggle input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+    .preset-description {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border-radius: 4px;
     }
     button {
-      margin-top: 12px;
-      padding: 8px 16px;
+      margin-top: 8px;
+      padding: 10px 20px;
       font-size: 14px;
       background: #2563eb;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 500;
     }
     button:hover {
       background: #1d4ed8;
@@ -60,96 +141,148 @@
     #status.error {
       color: #ef4444;
     }
-    .status-area {
-      margin-top: 24px;
+    .rules-preview {
+      margin-top: 16px;
       padding: 12px;
       background: #f9fafb;
       border: 1px solid #e5e7eb;
       border-radius: 6px;
     }
-    .status-area h3 {
-      font-size: 14px;
+    .rules-preview h4 {
+      font-size: 13px;
       margin: 0 0 8px 0;
       color: #374151;
     }
-    .status-row {
+    .rule-item {
       display: flex;
       justify-content: space-between;
-      font-size: 13px;
-      margin-bottom: 4px;
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid #e5e7eb;
     }
-    .status-row:last-child {
-      margin-bottom: 0;
+    .rule-item:last-child {
+      border-bottom: none;
     }
-    .status-label {
-      color: #6b7280;
-    }
-    .status-value {
+    .rule-action {
       font-weight: 500;
     }
-    .status-value.ok {
-      color: #22c55e;
+    .rule-action.block {
+      color: #dc2626;
     }
-    .status-value.error {
-      color: #ef4444;
+    .rule-action.warn {
+      color: #d97706;
+    }
+    .rule-action.allow {
+      color: #16a34a;
+    }
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 24px 0;
     }
     @media (prefers-color-scheme: dark) {
       body {
         background: #1f2937;
         color: #f9fafb;
       }
-      input[type="text"],
-      input[type="url"] {
+      select {
         background: #374151;
         border-color: #4b5563;
         color: #f9fafb;
       }
-      .hint {
+      .hint, .subtitle {
         color: #9ca3af;
       }
-      .status-area {
+      .toggle-row, .rules-preview {
         background: #374151;
         border-color: #4b5563;
       }
-      .status-area h3 {
+      .toggle-slider {
+        background-color: #4b5563;
+      }
+      .preset-description {
+        background: #374151;
+      }
+      .section-title, .rules-preview h4 {
         color: #e5e7eb;
       }
-      .status-label {
-        color: #9ca3af;
+      .rule-item {
+        border-color: #4b5563;
+      }
+      .divider {
+        background: #4b5563;
       }
     }
   </style>
 </head>
 <body>
   <h1>PromptFence Settings</h1>
+  <p class="subtitle">Local Mode — No server required, all detection runs in your browser</p>
 
-  <div class="form-group">
-    <label for="installCode">Install Code</label>
-    <input type="text" id="installCode" placeholder="e.g., A1B2C3D4" maxlength="8">
-    <p class="hint">8-character code from your admin dashboard</p>
+  <div class="section">
+    <div class="section-title">Protection Preset</div>
+    <div class="form-group">
+      <select id="preset">
+        <option value="personal">Personal Safety (Recommended)</option>
+        <option value="finance">Finance</option>
+        <option value="health">Health</option>
+        <option value="workplace">Workplace/HR</option>
+        <option value="developer">Developer</option>
+      </select>
+      <div id="presetDescription" class="preset-description"></div>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label for="apiBase">API Base URL</label>
-    <input type="url" id="apiBase" placeholder="http://localhost:3000">
-    <p class="hint">Backend server URL (leave empty for default)</p>
+  <div class="section">
+    <div class="section-title">Detection Rules</div>
+    <div id="rulesPreview" class="rules-preview">
+      <h4>Current Rules</h4>
+      <!-- Populated by JS -->
+    </div>
   </div>
 
-  <button id="save">Save</button>
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-title">Options</div>
+    <div class="toggle-group">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Enable Warnings</div>
+          <div class="toggle-hint">Show warning modal when WARN-level data is detected</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enableWarn" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Enable Blocking</div>
+          <div class="toggle-hint">Prevent paste when BLOCK-level data is detected</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enableBlock" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Debug Mode</div>
+          <div class="toggle-hint">Log detection details to browser console (for troubleshooting)</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="debugMode">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <button id="save">Save Settings</button>
   <div id="status"></div>
 
-  <div class="status-area">
-    <h3>Connection Status</h3>
-    <div class="status-row">
-      <span class="status-label">Config fetch:</span>
-      <span id="configStatus" class="status-value">-</span>
-    </div>
-    <div class="status-row">
-      <span class="status-label">Last tried:</span>
-      <span id="configTimestamp" class="status-value">-</span>
-    </div>
-  </div>
-
+  <script src="rules.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

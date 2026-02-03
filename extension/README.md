@@ -1,39 +1,85 @@
-# PromptFence Browser Extension
+# PromptFence (Personal)
 
-Prevents sensitive data (emails, phone numbers, IBANs) from being pasted into AI chat prompts.
+Browser extension that protects your sensitive data from being pasted into AI chat prompts.
 
-## How to Install (1 minute)
+**No server required** — all detection runs locally in your browser.
 
-1. **Download** the ZIP from `/demo` page (or run `./scripts/package-extension.sh`)
-2. **Unzip** the file to a folder
-3. **Open Chrome** → navigate to `chrome://extensions`
-4. **Enable Developer Mode** (toggle in top-right)
-5. **Click "Load unpacked"** → select the unzipped folder
-6. PromptFence icon appears in toolbar ✓
+## Features
 
-## How to Connect
+- **Detects sensitive data**: Emails, phones, IBANs, credit cards, addresses, passwords/API keys
+- **Customizable presets**: Personal, Finance, Health, Workplace, Developer
+- **WARN or BLOCK**: Choose to warn (allow paste) or block (prevent paste) for each data type
+- **100% local**: No data leaves your browser, no accounts needed
+- **Works on**: ChatGPT, Claude, Gemini
 
-Open extension **Options** (right-click icon → Options) and enter:
+## Installation
 
-| Setting | Value |
-|---------|-------|
-| **API Base URL** | `https://promptfenceapp-production.up.railway.app` |
-| **Install Code** | 8-character code from `/setup` after signup |
+### From Chrome Web Store
+*(Coming soon)*
 
-Click **Save**. Status should show **OK**.
+### Load Unpacked (Developer Mode)
 
-## How to Test
+1. Download or clone this repository
+2. Open Chrome → `chrome://extensions`
+3. Enable **Developer mode** (top-right toggle)
+4. Click **Load unpacked**
+5. Select the `extension/` folder
+6. Done! The extension is now active.
 
-1. Go to [chatgpt.com](https://chatgpt.com) (or claude.ai, gemini.google.com)
-2. Paste one of these into the prompt field:
-   - Email: `test@example.com` → **WARN** (yellow modal, paste allowed)
-   - IBAN: `DE89370400440532013000` → **BLOCK** (red modal, paste prevented)
-3. Check `/events` on the dashboard to see logged events
+## Configuration
 
-## Troubleshooting
+1. Click the PromptFence extension icon
+2. Select **Options** (or right-click → Options)
+3. Choose a **Protection Preset**:
+   - **Personal Safety** (default): Warns on most types, blocks credit cards and passwords
+   - **Finance**: Strict blocking for financial data
+   - **Health**: Protects health-related data
+   - **Workplace/HR**: Balanced for professional use
+   - **Developer**: Focuses on API keys and secrets
 
-| Problem | Fix |
-|---------|-----|
-| "Config fetch failed" | Check API URL has `https://`, Install Code is 8 chars |
-| No modal appears | Refresh the AI page after configuring extension |
-| Events not logged | Install Code must match the org you signed up with |
+4. Adjust toggles:
+   - **Enable Warnings**: Show warning modals for WARN-level data
+   - **Enable Blocking**: Prevent paste for BLOCK-level data
+   - **Debug Mode**: Log detection details to console (for troubleshooting)
+
+5. Click **Save Settings**
+
+## Testing
+
+1. Go to [chatgpt.com](https://chatgpt.com), [claude.ai](https://claude.ai), or [gemini.google.com](https://gemini.google.com)
+2. Try pasting:
+   - `test@example.com` → WARN (email)
+   - `4111111111111111` → BLOCK (credit card)
+   - `password: secret123` → BLOCK (password)
+   - `DE89370400440532013000` → WARN or BLOCK (IBAN)
+
+## Privacy
+
+**PromptFence processes all data locally.** No data is collected, transmitted, or stored externally.
+
+See [PRIVACY.md](PRIVACY.md) for full details.
+
+## Versions
+
+| Version | Description |
+|---------|-------------|
+| **PromptFence (Personal)** | This version. Local-only, no backend required. For personal use. |
+| **PromptFence (Demo/Admin)** | Requires backend server. For enterprise/team testing. See main branch. |
+
+## Development
+
+### Run Tests
+```bash
+cd extension
+node --test tests/logic.test.js
+```
+
+### Package for Store
+```bash
+./scripts/package-extension-store.sh
+# Output: dist/promptfence-store.zip
+```
+
+## License
+
+MIT
