@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "PromptFence (Personal)",
   "version": "1.0.0",
-  "description": "Your personal AI safety layer. Pauses and reviews messages before they're sent to AI tools, helping you catch sensitive data before it's shared.",
+  "description": "Prevents accidental sharing of sensitive data in AI chats. Detects emails, phones, IBANs, cards, and more. Runs locally.",
   "permissions": [
     "storage"
   ],
