@@ -86,17 +86,28 @@ function isValidCreditCard(cardNumber) {
 }
 
 /**
- * Detects regulated identifiers in text.
+ * Detects regulated identifiers in text with match ranges.
  * @param {string} text - The text to scan
  * @param {Object} enabledTypes - Which types to detect (default: all)
- * @returns {string[]} - Array of unique detected types
+ * @returns {string[]} - Array of unique detected types (for backward compat)
  */
 function detectMatches(text, enabledTypes) {
+  const results = detectMatchesWithRanges(text, enabledTypes);
+  return [...new Set(results.map(r => r.type))];
+}
+
+/**
+ * Detects regulated identifiers in text with full match information.
+ * Returns match ranges for anonymization.
+ * @param {string} text - The text to scan
+ * @param {Object} enabledTypes - Which types to detect (default: all)
+ * @returns {Array<{type: string, start: number, end: number, match: string}>}
+ */
+function detectMatchesWithRanges(text, enabledTypes) {
   if (!text || typeof text !== 'string') {
     return [];
   }
 
-  // Default: detect all types
   const enabled = enabledTypes || {
     EMAIL: true,
     PHONE: true,
@@ -106,93 +117,130 @@ function detectMatches(text, enabledTypes) {
     PASSWORD: true
   };
 
-  const hits = new Set();
+  const matches = [];
 
-  // EMAIL: pragmatic regex
+  // EMAIL
   if (enabled.EMAIL !== false) {
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    if (emailRegex.test(text)) {
-      hits.add('EMAIL');
+    let match;
+    while ((match = emailRegex.exec(text)) !== null) {
+      matches.push({
+        type: 'EMAIL',
+        start: match.index,
+        end: match.index + match[0].length,
+        match: match[0]
+      });
     }
   }
 
-  // PHONE: candidate extraction + normalization
+  // PHONE
   if (enabled.PHONE !== false) {
     const phoneCandidateRegex = /(\+?\d[\d\s().-]{6,}\d)/g;
-    const phoneCandidates = text.match(phoneCandidateRegex) || [];
-    for (const candidate of phoneCandidates) {
-      const digits = candidate.replace(/\D/g, '');
+    let match;
+    while ((match = phoneCandidateRegex.exec(text)) !== null) {
+      const digits = match[0].replace(/\D/g, '');
       if (digits.length >= 8 && digits.length <= 15) {
-        hits.add('PHONE');
-        break;
+        matches.push({
+          type: 'PHONE',
+          start: match.index,
+          end: match.index + match[0].length,
+          match: match[0]
+        });
       }
     }
   }
 
-  // IBAN: candidate regex + mod-97 validation
+  // IBAN
   if (enabled.IBAN !== false) {
     const ibanCandidateRegex = /\b[A-Za-z]{2}[0-9]{2}(?:\s?[A-Za-z0-9]{4}){2,7}(?:\s?[A-Za-z0-9]{1,4})?\b/g;
-    const ibanMatches = text.match(ibanCandidateRegex) || [];
-    for (const candidate of ibanMatches) {
-      if (ibanIsValid(candidate)) {
-        hits.add('IBAN');
-        break;
+    let match;
+    while ((match = ibanCandidateRegex.exec(text)) !== null) {
+      if (ibanIsValid(match[0])) {
+        matches.push({
+          type: 'IBAN',
+          start: match.index,
+          end: match.index + match[0].length,
+          match: match[0]
+        });
       }
     }
   }
 
-  // CREDIT_CARD: 13-19 digit sequences with Luhn validation
+  // CREDIT_CARD
   if (enabled.CREDIT_CARD !== false) {
-    // Match card-like patterns (with optional spaces/dashes)
     const cardRegex = /\b(?:\d{4}[\s-]?){3,4}\d{1,4}\b/g;
-    const cardMatches = text.match(cardRegex) || [];
-    for (const candidate of cardMatches) {
-      if (isValidCreditCard(candidate)) {
-        hits.add('CREDIT_CARD');
-        break;
+    let match;
+    while ((match = cardRegex.exec(text)) !== null) {
+      if (isValidCreditCard(match[0])) {
+        matches.push({
+          type: 'CREDIT_CARD',
+          start: match.index,
+          end: match.index + match[0].length,
+          match: match[0]
+        });
       }
     }
   }
 
-  // ADDRESS: Basic heuristic for US/UK style addresses
+  // ADDRESS
   if (enabled.ADDRESS !== false) {
-    // Look for street number + street name + common suffixes
     const addressPatterns = [
-      /\b\d{1,5}\s+[A-Za-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Way|Place|Pl)\b/i,
-      // ZIP codes (US 5-digit or 5+4)
-      /\b\d{5}(?:-\d{4})?\b/,
-      // UK postcodes
-      /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i
+      /\b\d{1,5}\s+[A-Za-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Way|Place|Pl)\b/gi,
+      /\b\d{5}(?:-\d{4})?\b/g,
+      /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/gi
     ];
 
     for (const pattern of addressPatterns) {
-      if (pattern.test(text)) {
-        hits.add('ADDRESS');
-        break;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        matches.push({
+          type: 'ADDRESS',
+          start: match.index,
+          end: match.index + match[0].length,
+          match: match[0]
+        });
       }
     }
   }
 
-  // PASSWORD: Keywords that suggest credentials/secrets
+  // PASSWORD
   if (enabled.PASSWORD !== false) {
-    const passwordKeywords = [
-      /\b(password|passwd|pwd)\s*[:=]\s*\S+/i,
-      /\b(api[_-]?key|apikey)\s*[:=]\s*\S+/i,
-      /\b(secret|token)\s*[:=]\s*\S+/i,
-      /\b(2fa|totp|otp)\s*[:=]?\s*\d{6}\b/i,
-      /\bsk[-_]live[-_][a-zA-Z0-9]+\b/,  // Stripe-style keys
-      /\b[a-zA-Z0-9]{32,}\b/  // Long alphanumeric strings (API keys)
+    const passwordPatterns = [
+      /\b(password|passwd|pwd)\s*[:=]\s*\S+/gi,
+      /\b(api[_-]?key|apikey)\s*[:=]\s*\S+/gi,
+      /\b(secret|token)\s*[:=]\s*\S+/gi,
+      /\b(2fa|totp|otp)\s*[:=]?\s*\d{6}\b/gi,
+      /\bsk[-_]live[-_][a-zA-Z0-9]+\b/g,
+      /\b[a-zA-Z0-9]{32,}\b/g
     ];
 
-    for (const pattern of passwordKeywords) {
-      if (pattern.test(text)) {
-        hits.add('PASSWORD');
-        break;
+    for (const pattern of passwordPatterns) {
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        matches.push({
+          type: 'PASSWORD',
+          start: match.index,
+          end: match.index + match[0].length,
+          match: match[0]
+        });
       }
     }
   }
 
-  return Array.from(hits);
+  // Sort by start index (for correct replacement order)
+  matches.sort((a, b) => a.start - b.start);
+
+  // Remove overlapping matches (keep the first/longest)
+  const filtered = [];
+  let lastEnd = -1;
+  for (const m of matches) {
+    if (m.start >= lastEnd) {
+      filtered.push(m);
+      lastEnd = m.end;
+    }
+  }
+
+  return filtered;
 }
 
 /**
@@ -272,6 +320,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ibanIsValid,
     isValidCreditCard,
     detectMatches,
+    detectMatchesWithRanges,
     isAiDomain,
     ruleTriggers,
     getTypeName,
