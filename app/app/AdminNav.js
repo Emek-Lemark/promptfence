@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/policy', label: 'Policy' },
   { href: '/team', label: 'Team' },
   { href: '/events', label: 'Events' },
+  { href: '/compliance', label: 'Compliance' },
   { href: '/billing', label: 'Billing' },
 ];
 

@@ -79,7 +79,7 @@ export default function DashboardPage() {
         {/* Stats cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(5, 1fr)',
           gap: 16,
           marginBottom: 32,
         }}>
@@ -106,6 +106,12 @@ export default function DashboardPage() {
             value={`${team.installed} of ${team.seats}`}
             color="#059669"
             bgColor="#f0fdf4"
+          />
+          <StatCard
+            label="AI literacy"
+            value={`${team.pctTrained ?? 0}%`}
+            color="#7c3aed"
+            bgColor="#f5f3ff"
           />
         </div>
 

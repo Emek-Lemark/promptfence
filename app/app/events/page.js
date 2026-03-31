@@ -35,6 +35,7 @@ const styles = {
     gap: 12,
     marginBottom: 20,
     flexWrap: 'wrap',
+    alignItems: 'center',
   },
   select: {
     padding: '8px 12px',
@@ -70,6 +71,7 @@ const styles = {
   td: {
     padding: '10px 12px',
     borderBottom: '1px solid #e2e8f0',
+    verticalAlign: 'middle',
   },
   empty: {
     textAlign: 'center',
@@ -94,6 +96,8 @@ export default function EventsPage() {
   const [actionFilter, setActionFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [dataTypeFilter, setDataTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [acknowledging, setAcknowledging] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -111,28 +115,54 @@ export default function EventsPage() {
         setEvents(data.events);
         setPagination(data.pagination);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load events');
     } finally {
       setLoading(false);
     }
   }
 
+  async function acknowledge(eventId) {
+    setAcknowledging(eventId);
+    try {
+      const { res } = await adminFetch(`/api/events/${eventId}`, { method: 'PATCH', body: JSON.stringify({}) }, router);
+      if (res?.ok) {
+        setEvents((prev) =>
+          prev.map((e) =>
+            e.id === eventId
+              ? { ...e, acknowledged: true, acknowledgedAt: new Date().toISOString() }
+              : e
+          )
+        );
+      } else {
+        setError('Failed to mark event as reviewed');
+      }
+    } catch {
+      setError('Failed to mark event as reviewed');
+    } finally {
+      setAcknowledging(null);
+    }
+  }
+
   const filteredEvents = events.filter((event) => {
     if (actionFilter && event.action !== actionFilter) return false;
     if (domainFilter && !event.aiDomain.includes(domainFilter)) return false;
-    if (dataTypeFilter && !event.dataTypes.includes(dataTypeFilter)) return false;
+    if (dataTypeFilter && !JSON.stringify(event.dataTypes).includes(dataTypeFilter)) return false;
+    if (statusFilter === 'pending' && event.acknowledged) return false;
+    if (statusFilter === 'reviewed' && !event.acknowledged) return false;
     return true;
   });
 
   function exportCsv() {
-    const headers = ['timestamp', 'aiDomain', 'action', 'dataTypes', 'userEmail'];
+    const headers = ['timestamp', 'userEmail', 'aiDomain', 'action', 'dataTypes', 'reviewed', 'reviewedAt'];
     const rows = filteredEvents.map((e) => [
       e.timestamp,
+      e.userEmail || '',
       e.aiDomain,
       e.action,
-      e.dataTypes.join(';'),
-      e.userEmail || '',
+      (e.dataTypes || []).join(';'),
+      e.acknowledged ? 'yes' : 'no',
+      e.acknowledgedAt || '',
     ]);
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -148,20 +178,27 @@ export default function EventsPage() {
     return (
       <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
         <AdminNav active="events" />
-        <div style={styles.loading}>Loading events...</div>
+        <div style={styles.loading}>Loading events…</div>
       </div>
     );
   }
 
-  const hasNoEvents = events.length === 0;
+  const pendingCount = events.filter((e) => e.action === 'BLOCK' && !e.acknowledged).length;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
       <AdminNav active="events" />
       <div style={styles.container}>
         <div style={styles.headerRow}>
-          <h1 style={styles.title}>Events</h1>
-          {!hasNoEvents && (
+          <div>
+            <h1 style={styles.title}>Events</h1>
+            {pendingCount > 0 && (
+              <p style={{ fontSize: 13, color: '#d97706', marginTop: 4, fontWeight: 500 }}>
+                {pendingCount} blocked event{pendingCount !== 1 ? 's' : ''} need{pendingCount === 1 ? 's' : ''} review
+              </p>
+            )}
+          </div>
+          {events.length > 0 && (
             <button style={styles.btnSecondary} onClick={exportCsv}>Export CSV</button>
           )}
         </div>
@@ -172,7 +209,7 @@ export default function EventsPage() {
           </div>
         )}
 
-        {hasNoEvents ? (
+        {events.length === 0 ? (
           <div style={styles.section}>
             <div style={styles.empty}>
               No events yet. Events appear here when the extension detects sensitive data.
@@ -186,8 +223,13 @@ export default function EventsPage() {
                 <option value="WARN">WARN</option>
                 <option value="BLOCK">BLOCK</option>
               </select>
+              <select style={styles.select} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="">All Statuses</option>
+                <option value="pending">Pending review</option>
+                <option value="reviewed">Reviewed</option>
+              </select>
               <select style={styles.select} value={domainFilter} onChange={(e) => setDomainFilter(e.target.value)}>
-                <option value="">All Domains</option>
+                <option value="">All Platforms</option>
                 <option value="chatgpt.com">ChatGPT</option>
                 <option value="claude.ai">Claude</option>
                 <option value="gemini.google.com">Gemini</option>
@@ -216,18 +258,19 @@ export default function EventsPage() {
                       <th style={styles.th}>Data types</th>
                       <th style={styles.th}>Action</th>
                       <th style={styles.th}>Status</th>
+                      <th style={styles.th}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredEvents.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ ...styles.td, textAlign: 'center', color: '#64748b', padding: 32 }}>
+                        <td colSpan={7} style={{ ...styles.td, textAlign: 'center', color: '#64748b', padding: 32 }}>
                           No events match the current filters
                         </td>
                       </tr>
                     ) : (
                       filteredEvents.map((event) => (
-                        <tr key={event.id}>
+                        <tr key={event.id} style={{ background: !event.acknowledged && event.action === 'BLOCK' ? '#fffbeb' : 'transparent' }}>
                           <td style={{ ...styles.td, whiteSpace: 'nowrap', fontSize: 13 }}>
                             {new Date(event.timestamp).toLocaleString()}
                           </td>
@@ -235,7 +278,9 @@ export default function EventsPage() {
                             {event.userEmail || '-'}
                           </td>
                           <td style={{ ...styles.td, fontSize: 13 }}>{event.aiDomain}</td>
-                          <td style={{ ...styles.td, fontSize: 13 }}>{event.dataTypes.join(', ')}</td>
+                          <td style={{ ...styles.td, fontSize: 13 }}>
+                            {(event.dataTypes || []).join(', ')}
+                          </td>
                           <td style={styles.td}>
                             <span style={{
                               display: 'inline-block',
@@ -251,9 +296,34 @@ export default function EventsPage() {
                           </td>
                           <td style={styles.td}>
                             {event.acknowledged ? (
-                              <span style={{ color: '#059669', fontSize: 12, fontWeight: 500 }}>Reviewed</span>
+                              <span style={{ color: '#059669', fontSize: 12, fontWeight: 500 }}>
+                                ✓ Reviewed
+                              </span>
                             ) : (
-                              <span style={{ color: '#d97706', fontSize: 12, fontWeight: 500 }}>Pending</span>
+                              <span style={{ color: '#d97706', fontSize: 12, fontWeight: 500 }}>
+                                Pending
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ ...styles.td, textAlign: 'right' }}>
+                            {!event.acknowledged && event.action === 'BLOCK' && (
+                              <button
+                                onClick={() => acknowledge(event.id)}
+                                disabled={acknowledging === event.id}
+                                style={{
+                                  padding: '4px 12px',
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  background: acknowledging === event.id ? '#e2e8f0' : '#f0fdf4',
+                                  color: '#059669',
+                                  border: '1px solid #bbf7d0',
+                                  borderRadius: 5,
+                                  cursor: acknowledging === event.id ? 'wait' : 'pointer',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {acknowledging === event.id ? '…' : 'Mark reviewed'}
+                              </button>
                             )}
                           </td>
                         </tr>

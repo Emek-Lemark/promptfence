@@ -158,9 +158,12 @@ export async function GET(request) {
       userEmail: e.user_email,
       aiDomain: e.ai_domain,
       ruleId: e.rule_id,
-      dataTypes: JSON.parse(e.data_types),
+      dataTypes: (() => { try { return JSON.parse(e.data_types); } catch { return [e.data_types]; } })(),
       action: e.action,
-      extensionVersion: e.extension_version
+      extensionVersion: e.extension_version,
+      acknowledged: Boolean(e.acknowledged),
+      acknowledgedAt: e.acknowledged_at || null,
+      acknowledgedNote: e.acknowledged_note || null,
     }));
 
     // Return CSV if requested

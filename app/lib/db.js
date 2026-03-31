@@ -164,6 +164,41 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
   `);
 
+  // AI tool inventory — admin-set approval status per org
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ai_tools (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      domain TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'discovered',
+      risk_level TEXT NOT NULL DEFAULT 'limited',
+      notes TEXT,
+      reviewed_by TEXT,
+      reviewed_at TEXT,
+      first_seen_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(org_id, domain),
+      FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE,
+      CHECK (status IN ('approved', 'flagged', 'discovered')),
+      CHECK (risk_level IN ('minimal', 'limited', 'high'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_tools_org_id ON ai_tools(org_id);
+  `);
+
+  // Compliance report log
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS compliance_reports (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      generated_by TEXT,
+      period_from TEXT,
+      period_to TEXT,
+      generated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_compliance_reports_org_id ON compliance_reports(org_id);
+  `);
+
   // Migrations — safe to run repeatedly
   const migrations = [
     `ALTER TABLE orgs ADD COLUMN paddle_customer_id TEXT`,

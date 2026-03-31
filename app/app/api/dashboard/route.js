@@ -94,6 +94,14 @@ export async function GET(request) {
       GROUP BY ai_domain ORDER BY count DESC LIMIT 10
     `).all(orgId, weekAgo);
 
+    // Team training (policy acknowledged)
+    const trainedUsers = db.prepare(`
+      SELECT COUNT(*) as count FROM users WHERE org_id = ? AND policy_acknowledged_at IS NOT NULL
+    `).get(orgId);
+    const pctTrained = totalUsers.count > 0
+      ? Math.round((trainedUsers.count / totalUsers.count) * 100)
+      : 0;
+
     // Unacknowledged high-severity events
     const unacknowledged = db.prepare(`
       SELECT COUNT(*) as count FROM events
@@ -128,6 +136,8 @@ export async function GET(request) {
       team: {
         total: totalUsers.count,
         installed: installedUsers.count,
+        trained: trainedUsers.count,
+        pctTrained,
         seats: org?.seats || 10,
       },
       topTypes,
