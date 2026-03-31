@@ -8,24 +8,47 @@ const { requireAdmin, requireInstallCode } = require('@/lib/auth');
 // POST - Extension reports event (NO CONTENT STORED)
 export async function POST(request) {
   try {
-    // Require install code
     const auth = await requireInstallCode(request);
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const body = await request.json();
-    const { timestamp, aiDomain, ruleId, dataTypes, action, extensionVersion } = body;
+    const db = getDb();
 
-    // Validate required fields
-    if (!timestamp || !aiDomain || !ruleId || !dataTypes || !action || !extensionVersion) {
+    // Handle platform visit (shadow AI discovery)
+    if (body.type === 'platform_visit') {
+      const { aiDomain } = body;
+      if (!aiDomain) {
+        return NextResponse.json(
+          { error: { code: 'INVALID_REQUEST', message: 'aiDomain required' } },
+          { status: 400 }
+        );
+      }
+      db.prepare(`
+        INSERT INTO platform_visits (id, org_id, user_id, ai_domain, visited_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `).run(uuidv4(), auth.org.id, auth.user.id, aiDomain);
+
+      // Update last_seen_at and mark extension as installed
+      db.prepare(`
+        UPDATE users SET last_seen_at = datetime('now'), extension_installed = 1, updated_at = datetime('now')
+        WHERE id = ?
+      `).run(auth.user.id);
+
+      return NextResponse.json({ ok: true }, { status: 201 });
+    }
+
+    // Handle detection event
+    const { aiDomain, dataTypes, action, ruleId, timestamp, extensionVersion, source } = body;
+
+    if (!aiDomain || !action) {
       return NextResponse.json(
-        { error: { code: 'INVALID_REQUEST', message: 'Missing required fields' } },
+        { error: { code: 'INVALID_REQUEST', message: 'aiDomain and action are required' } },
         { status: 400 }
       );
     }
 
-    // Validate action
     if (!['WARN', 'BLOCK'].includes(action)) {
       return NextResponse.json(
         { error: { code: 'INVALID_REQUEST', message: 'Action must be WARN or BLOCK' } },
@@ -33,18 +56,9 @@ export async function POST(request) {
       );
     }
 
-    // Validate dataTypes is array
-    if (!Array.isArray(dataTypes)) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_REQUEST', message: 'dataTypes must be an array' } },
-        { status: 400 }
-      );
-    }
-
-    const db = getDb();
     const eventId = uuidv4();
+    const types = Array.isArray(dataTypes) ? dataTypes : [];
 
-    // Insert event (NO clipboard content or prompts stored)
     db.prepare(`
       INSERT INTO events (id, org_id, user_id, timestamp, ai_domain, rule_id, data_types, action, extension_version)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -52,23 +66,23 @@ export async function POST(request) {
       eventId,
       auth.org.id,
       auth.user.id,
-      timestamp,
+      timestamp || new Date().toISOString(),
       aiDomain,
-      ruleId,
-      JSON.stringify(dataTypes),
+      ruleId || source || 'detection',
+      JSON.stringify(types),
       action,
-      extensionVersion
+      extensionVersion || '1.1.0'
     );
 
-    // Increment block count if action is BLOCK
+    // Update user stats
     if (action === 'BLOCK') {
       db.prepare(`
         UPDATE users SET block_count = block_count + 1, last_seen_at = datetime('now'), updated_at = datetime('now')
         WHERE id = ?
       `).run(auth.user.id);
-    } else {
+    } else if (action === 'WARN') {
       db.prepare(`
-        UPDATE users SET last_seen_at = datetime('now'), updated_at = datetime('now')
+        UPDATE users SET warn_count = warn_count + 1, last_seen_at = datetime('now'), updated_at = datetime('now')
         WHERE id = ?
       `).run(auth.user.id);
     }

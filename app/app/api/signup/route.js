@@ -76,19 +76,20 @@ export async function POST(request) {
       );
     }
 
-    // Create organization
+    // Create organization with 14-day trial
     const orgId = uuidv4();
     const installCode = generateInstallCode();
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
     db.prepare(`
-      INSERT INTO orgs (id, domain, install_code)
-      VALUES (?, ?, ?)
-    `).run(orgId, domain, installCode);
+      INSERT INTO orgs (id, domain, install_code, plan, trial_ends_at)
+      VALUES (?, ?, ?, 'trial', ?)
+    `).run(orgId, domain, installCode, trialEndsAt);
 
-    // Create default config (EMAIL=WARN, PHONE=WARN, IBAN=BLOCK)
+    // Create default config with full policy
     const configId = uuidv4();
     db.prepare(`
-      INSERT INTO org_config (id, org_id)
-      VALUES (?, ?)
+      INSERT INTO org_config (id, org_id, preset)
+      VALUES (?, ?, 'workplace')
     `).run(configId, orgId);
 
     // Create admin user
@@ -108,7 +109,8 @@ export async function POST(request) {
         orgId,
         domain,
         installCode,
-        token
+        token,
+        setupCompleted: false
       },
       { status: 201 }
     );

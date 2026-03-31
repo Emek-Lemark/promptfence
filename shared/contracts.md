@@ -157,7 +157,7 @@ Generate or regenerate install code.
 ```json
 {
   "installCode": "A1B2C3D4",
-  "installUrl": "https://promptfence.com/install?code=A1B2C3D4"
+  "installUrl": "https://promptfence.ai/install?code=A1B2C3D4"
 }
 ```
 

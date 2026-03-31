@@ -60,21 +60,40 @@ export async function GET(request) {
       );
     }
 
+    const org = db.prepare('SELECT name, policy_text FROM orgs WHERE id = ?').get(auth.org.id);
+
     return NextResponse.json({
       orgId: auth.org.id,
+      orgName: org?.name || null,
       userId: auth.user.id,
+      preset: config.preset,
       aiTools: {
         chatgpt: Boolean(config.ai_chatgpt),
         claude: Boolean(config.ai_claude),
         gemini: Boolean(config.ai_gemini),
+        perplexity: Boolean(config.ai_perplexity),
+        copilot: Boolean(config.ai_copilot),
+        mistral: Boolean(config.ai_mistral),
+        slack: Boolean(config.ai_slack),
+        gmail: Boolean(config.ai_gmail),
+        notion: Boolean(config.ai_notion),
+        linear: Boolean(config.ai_linear),
+        outlook: Boolean(config.ai_outlook),
         other: Boolean(config.ai_other)
       },
       rules: {
         EMAIL: config.action_email,
         PHONE: config.action_phone,
-        IBAN: config.action_iban
+        IBAN: config.action_iban,
+        CREDIT_CARD: config.action_credit_card,
+        ADDRESS: config.action_address,
+        PASSWORD: config.action_password,
       },
-      approvedAiUrl: config.approved_ai_url
+      customTerms: JSON.parse(config.custom_terms || '[]'),
+      approvedAiUrl: config.approved_ai_url,
+      fileUploadWarning: Boolean(config.file_upload_warning),
+      policyText: org?.policy_text || null,
+      policyAcknowledged: Boolean(auth.user.policy_acknowledged_at),
     });
   } catch (error) {
     console.error('Get config error:', error);

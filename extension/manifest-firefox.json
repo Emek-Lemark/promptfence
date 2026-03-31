@@ -3,6 +3,12 @@
   "name": "PromptFence",
   "version": "1.1.0",
   "description": "Prevents accidental sharing of sensitive data in AI chats. Detects emails, phones, IBANs, cards, and more. Runs locally.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "promptfence@promptfence.ai",
+      "strict_min_version": "109.0"
+    }
+  },
   "permissions": [
     "storage",
     "alarms"
@@ -48,7 +54,7 @@
     }
   ],
   "background": {
-    "service_worker": "service_worker.js"
+    "scripts": ["service_worker.js"]
   },
   "options_page": "options.html",
   "action": {

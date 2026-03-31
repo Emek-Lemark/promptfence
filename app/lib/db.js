@@ -32,7 +32,14 @@ function initSchema() {
         id TEXT PRIMARY KEY,
         domain TEXT NOT NULL UNIQUE,
         name TEXT,
+        industry TEXT,
         install_code TEXT NOT NULL UNIQUE,
+        setup_completed INTEGER NOT NULL DEFAULT 0,
+        policy_text TEXT,
+        plan TEXT NOT NULL DEFAULT 'trial',
+        seats INTEGER NOT NULL DEFAULT 10,
+        trial_ends_at TEXT,
+        paddle_subscription_id TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -51,6 +58,11 @@ function initSchema() {
         extension_installed INTEGER NOT NULL DEFAULT 0,
         last_seen_at TEXT,
         block_count INTEGER NOT NULL DEFAULT 0,
+        warn_count INTEGER NOT NULL DEFAULT 0,
+        invite_status TEXT DEFAULT 'active',
+        invite_token TEXT,
+        invited_at TEXT,
+        policy_acknowledged_at TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE
@@ -60,24 +72,40 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_hashed_id ON users(hashed_id);
 
-    -- Organization Configuration (rules)
+    -- Organization Configuration (full policy)
     CREATE TABLE IF NOT EXISTS org_config (
         id TEXT PRIMARY KEY,
         org_id TEXT NOT NULL UNIQUE,
+        preset TEXT NOT NULL DEFAULT 'workplace',
+        -- AI platforms (1 = monitored, 0 = not monitored)
         ai_chatgpt INTEGER NOT NULL DEFAULT 1,
         ai_claude INTEGER NOT NULL DEFAULT 1,
         ai_gemini INTEGER NOT NULL DEFAULT 1,
+        ai_perplexity INTEGER NOT NULL DEFAULT 0,
+        ai_copilot INTEGER NOT NULL DEFAULT 0,
+        ai_mistral INTEGER NOT NULL DEFAULT 0,
+        ai_slack INTEGER NOT NULL DEFAULT 0,
+        ai_gmail INTEGER NOT NULL DEFAULT 0,
+        ai_notion INTEGER NOT NULL DEFAULT 0,
+        ai_linear INTEGER NOT NULL DEFAULT 0,
+        ai_outlook INTEGER NOT NULL DEFAULT 0,
         ai_other INTEGER NOT NULL DEFAULT 0,
+        -- Detection rules: ALLOW, WARN, or BLOCK
         action_email TEXT NOT NULL DEFAULT 'WARN',
         action_phone TEXT NOT NULL DEFAULT 'WARN',
         action_iban TEXT NOT NULL DEFAULT 'BLOCK',
+        action_credit_card TEXT NOT NULL DEFAULT 'BLOCK',
+        action_address TEXT NOT NULL DEFAULT 'WARN',
+        action_password TEXT NOT NULL DEFAULT 'BLOCK',
+        -- Custom blocked terms (JSON array of strings)
+        custom_terms TEXT NOT NULL DEFAULT '[]',
+        -- Approved alternative AI URL
         approved_ai_url TEXT,
+        -- File upload warnings
+        file_upload_warning INTEGER NOT NULL DEFAULT 1,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE,
-        CHECK (action_email IN ('WARN', 'BLOCK')),
-        CHECK (action_phone IN ('WARN', 'BLOCK')),
-        CHECK (action_iban IN ('WARN', 'BLOCK'))
+        FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE
     );
 
     CREATE INDEX IF NOT EXISTS idx_org_config_org_id ON org_config(org_id);
@@ -89,10 +117,14 @@ function initSchema() {
         user_id TEXT NOT NULL,
         timestamp TEXT NOT NULL,
         ai_domain TEXT NOT NULL,
-        rule_id TEXT NOT NULL,
+        rule_id TEXT NOT NULL DEFAULT 'R1',
         data_types TEXT NOT NULL,
         action TEXT NOT NULL,
-        extension_version TEXT NOT NULL,
+        extension_version TEXT NOT NULL DEFAULT '1.0.0',
+        acknowledged INTEGER NOT NULL DEFAULT 0,
+        acknowledged_by TEXT,
+        acknowledged_at TEXT,
+        acknowledged_note TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -104,6 +136,20 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
     CREATE INDEX IF NOT EXISTS idx_events_ai_domain ON events(ai_domain);
     CREATE INDEX IF NOT EXISTS idx_events_action ON events(action);
+
+    -- AI platform visits (shadow AI discovery - metadata only)
+    CREATE TABLE IF NOT EXISTS platform_visits (
+        id TEXT PRIMARY KEY,
+        org_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        ai_domain TEXT NOT NULL,
+        visited_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_platform_visits_org_id ON platform_visits(org_id);
+    CREATE INDEX IF NOT EXISTS idx_platform_visits_ai_domain ON platform_visits(ai_domain);
 
     -- Sessions
     CREATE TABLE IF NOT EXISTS sessions (

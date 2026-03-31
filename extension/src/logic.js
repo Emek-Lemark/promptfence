@@ -133,19 +133,25 @@ function detectMatchesWithRanges(text, enabledTypes) {
     }
   }
 
-  // PHONE
+  // PHONE: require + country code, parenthesized area code, or leading 0
   if (enabled.PHONE !== false) {
-    const phoneCandidateRegex = /(\+?\d[\d\s().-]{6,}\d)/g;
-    let match;
-    while ((match = phoneCandidateRegex.exec(text)) !== null) {
-      const digits = match[0].replace(/\D/g, '');
-      if (digits.length >= 8 && digits.length <= 15) {
-        matches.push({
-          type: 'PHONE',
-          start: match.index,
-          end: match.index + match[0].length,
-          match: match[0]
-        });
+    const phonePatterns = [
+      /\+\d{1,3}[\s.-]?\(?\d{1,5}\)?[\s.-]?\d{2,5}[\s.-]?\d{2,5}[\s.-]?\d{0,5}/g,
+      /\(\d{2,5}\)\s*\d{3,5}[\s.-]?\d{3,5}/g,
+      /\b0\d{1,3}[\s.-]?\d{3,5}[\s.-]?\d{3,5}\b/g
+    ];
+    for (const phoneRegex of phonePatterns) {
+      let match;
+      while ((match = phoneRegex.exec(text)) !== null) {
+        const digits = match[0].replace(/\D/g, '');
+        if (digits.length >= 8 && digits.length <= 15) {
+          matches.push({
+            type: 'PHONE',
+            start: match.index,
+            end: match.index + match[0].length,
+            match: match[0]
+          });
+        }
       }
     }
   }
@@ -182,12 +188,25 @@ function detectMatchesWithRanges(text, enabledTypes) {
     }
   }
 
-  // ADDRESS
+  // ADDRESS: US, UK, and EU patterns
   if (enabled.ADDRESS !== false) {
     const addressPatterns = [
+      // US: street number + street name + suffix
       /\b\d{1,5}\s+[A-Za-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Way|Place|Pl)\b/gi,
+      // US: 5-digit ZIP or ZIP+4
       /\b\d{5}(?:-\d{4})?\b/g,
-      /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/gi
+      // UK: postcode format (e.g., SW1A 1AA)
+      /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/gi,
+      // Danish: 4-digit postcode (1000-9990) + city name
+      /\b[1-9]\d{3}\s+[A-Z\u00C6\u00D8\u00C5\u00C0-\u00FF][a-z\u00E6\u00F8\u00E5\u00E0-\u00FF]+/g,
+      // German: 5-digit postcode + city name
+      /\b[0-9]{5}\s+[A-Z\u00C4\u00D6\u00DC\u00C0-\u00FF][a-z\u00E4\u00F6\u00FC\u00DF\u00E0-\u00FF]+/g,
+      // Dutch: 1234 AB format
+      /\b\d{4}\s?[A-Z]{2}\b/g,
+      // Swedish: 123 45 format
+      /\b\d{3}\s\d{2}\b/g,
+      // Norwegian/Belgian: 4-digit postcode + city
+      /\b[0-9]{4}\s+[A-Z\u00C6\u00D8\u00C5\u00C0-\u00FF][a-z\u00E6\u00F8\u00E5\u00E0-\u00FF]{2,}\b/g
     ];
 
     for (const pattern of addressPatterns) {
@@ -203,15 +222,29 @@ function detectMatchesWithRanges(text, enabledTypes) {
     }
   }
 
-  // PASSWORD
+  // PASSWORD: prefix-gated patterns and known secret prefixes
   if (enabled.PASSWORD !== false) {
     const passwordPatterns = [
       /\b(password|passwd|pwd)\s*[:=]\s*\S+/gi,
       /\b(api[_-]?key|apikey)\s*[:=]\s*\S+/gi,
-      /\b(secret|token)\s*[:=]\s*\S+/gi,
-      /\b(2fa|totp|otp)\s*[:=]?\s*\d{6}\b/gi,
-      /\bsk[-_]live[-_][a-zA-Z0-9]+\b/g,
-      /\b[a-zA-Z0-9]{32,}\b/g
+      /\b(secret|token|access_token|auth_token)\s*[:=]\s*\S+/gi,
+      /\b(2fa|totp|otp|mfa)\s*[:=]?\s*\d{6,8}\b/gi,
+      // Stripe keys
+      /\bsk[-_]live[-_][a-zA-Z0-9]{24,}\b/g,
+      /\bsk[-_]test[-_][a-zA-Z0-9]{24,}\b/g,
+      // AWS access keys
+      /\bAKIA[A-Z0-9]{16}\b/g,
+      // GitHub tokens
+      /\bghp_[a-zA-Z0-9]{36}\b/g,
+      /\bgho_[a-zA-Z0-9]{36}\b/g,
+      /\bghs_[a-zA-Z0-9]{36}\b/g,
+      // GitLab tokens
+      /\bglpat-[a-zA-Z0-9\-_]{20,}\b/g,
+      // Slack tokens
+      /\bxoxb-[0-9]+-[a-zA-Z0-9-]+\b/g,
+      /\bxoxp-[0-9]+-[a-zA-Z0-9-]+\b/g,
+      // Bearer tokens in context
+      /\bBearer\s+[a-zA-Z0-9._\-]{20,}\b/g
     ];
 
     for (const pattern of passwordPatterns) {

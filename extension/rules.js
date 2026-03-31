@@ -187,7 +187,17 @@ const PromptFenceConfig = {
     'chat.openai.com',
     'chatgpt.com',
     'claude.ai',
-    'gemini.google.com'
+    'gemini.google.com',
+    'perplexity.ai',
+    'copilot.microsoft.com',
+    'chat.mistral.ai',
+    'app.slack.com',
+    'mail.google.com',
+    'notion.so',
+    'www.notion.so',
+    'linear.app',
+    'outlook.live.com',
+    'outlook.office.com'
   ],
   defaultPreset: 'personal',
   presets: PromptFencePresets,

@@ -220,6 +220,7 @@
   // STATE
   // ============================================================================
   let localConfig = null;
+  let teamConfig = null; // Set when in team mode (installCode present)
   let debugMode = false;
   let hasSeenOnboarding = false;
   let shadowHost = null;
@@ -228,6 +229,7 @@
   let pendingText = null;
   let pendingMatches = null;
   let pendingTarget = null;
+  let pendingSource = 'paste'; // 'paste' or 'submit'
   let pasteHandlerAttached = false;
   let removeStorageListener = null;
 
@@ -625,6 +627,31 @@
       text-decoration: underline;
     }
 
+    .pf-org-label {
+      font-size: 12px;
+      color: var(--pf-text-muted);
+      font-style: italic;
+    }
+
+    /* Micro-lesson success state */
+    .pf-lesson-check {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #dcfce7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 20px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .pf-lesson-check {
+        background: #14532d;
+      }
+    }
+
     /* Onboarding - also centered */
     .pf-onboarding {
       padding: 24px;
@@ -668,6 +695,62 @@
     .pf-onboarding .pf-actions {
       justify-content: flex-start;
       gap: 12px;
+    }
+
+    /* Team CTA */
+    .pf-team-cta {
+      border-top: 1px solid var(--pf-border);
+      padding: 12px 20px;
+      background: var(--pf-surface);
+      border-radius: 0 0 var(--pf-radius) var(--pf-radius);
+    }
+
+    .pf-team-cta-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pf-team-cta-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--pf-accent);
+    }
+
+    .pf-team-cta-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .pf-team-cta-text {
+      flex: 1;
+      font-size: 12px;
+      color: var(--pf-text-muted);
+      line-height: 1.4;
+    }
+
+    .pf-team-cta-text strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--pf-text-secondary);
+    }
+
+    .pf-team-cta-link {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--pf-accent);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: var(--pf-radius-sm);
+    }
+
+    .pf-team-cta-link:hover {
+      text-decoration: underline;
+      background: rgba(37, 99, 235, 0.08);
     }
   `;
 
@@ -721,9 +804,57 @@
   // ============================================================================
   // CONFIG
   // ============================================================================
+
+  /**
+   * Check if we're in team mode (install code present).
+   */
+  function isTeamMode() {
+    return !!teamConfig;
+  }
+
   function loadConfig() {
     if (disabledDueToRuntime) return;
 
+    // Check for team mode first
+    safeStorageGet(['installCode', 'teamConfig'], 'local').then(function(result) {
+      if (result.installCode) {
+        // Team mode — use cached team config, then refresh in background
+        if (result.teamConfig) {
+          applyTeamConfig(result.teamConfig);
+        }
+        // Ask service worker to fetch/refresh team config
+        safeSendMessage({ type: 'FETCH_TEAM_CONFIG' });
+        // Report platform visit for shadow AI discovery
+        safeSendMessage({ type: 'REPORT_PLATFORM_VISIT', aiDomain: window.location.hostname });
+        return;
+      }
+
+      // Personal mode — load from sync storage
+      loadPersonalConfig();
+    });
+  }
+
+  function applyTeamConfig(config) {
+    teamConfig = config;
+    localConfig = {
+      preset: config.preset || 'workplace',
+      rules: config.rules || PromptFencePresets.workplace.rules,
+      enableWarn: true,
+      enableBlock: true,
+      debugMode: false,
+      customTerms: config.customTerms || [],
+      orgName: config.orgName || null,
+      fileUploadWarning: config.fileUploadWarning || false,
+    };
+    debugMode = false;
+
+    // Show policy gate if needed (after a brief delay to let DOM settle)
+    if (needsPolicyAcknowledgment()) {
+      setTimeout(showPolicyGate, 500);
+    }
+  }
+
+  function loadPersonalConfig() {
     // Load from local storage first
     safeStorageGet(['localConfig'], 'local').then(function(result) {
       if (result.localConfig) {
@@ -772,6 +903,10 @@
     if (areaName === 'sync' && changes.hasSeenOnboarding) {
       hasSeenOnboarding = changes.hasSeenOnboarding.newValue;
     }
+    // Reload team config when it changes
+    if (areaName === 'local' && changes.teamConfig && changes.teamConfig.newValue) {
+      applyTeamConfig(changes.teamConfig.newValue);
+    }
   });
 
   // ============================================================================
@@ -787,6 +922,7 @@
     const warnTypes = [];
 
     for (const type of detectedTypes) {
+      if (type === 'CUSTOM_TERM') { warnTypes.push(type); continue; }
       const action = rules[type];
       if (action === 'BLOCK') blockTypes.push(type);
       else if (action === 'WARN') warnTypes.push(type);
@@ -806,11 +942,145 @@
   }
 
   function getTypeLabel(typeId) {
+    if (typeId === 'CUSTOM_TERM') return 'Custom term';
     return PromptFenceDataTypes[typeId]?.label || typeId;
   }
 
   function getPlaceholder(typeId) {
+    if (typeId === 'CUSTOM_TERM') return '[REDACTED]';
     return PromptFenceDataTypes[typeId]?.placeholder || '[REDACTED]';
+  }
+
+  // ============================================================================
+  // CUSTOM TERMS DETECTION (Team mode)
+  // ============================================================================
+
+  /**
+   * Detect custom terms in text (case-insensitive).
+   * Returns matches in the same format as detectMatchesWithRanges.
+   */
+  function detectCustomTerms(text) {
+    const terms = localConfig?.customTerms;
+    if (!terms || !Array.isArray(terms) || terms.length === 0) return [];
+
+    const matches = [];
+    const lowerText = text.toLowerCase();
+
+    for (const term of terms) {
+      if (!term) continue;
+      const lowerTerm = term.toLowerCase();
+      let idx = 0;
+      while ((idx = lowerText.indexOf(lowerTerm, idx)) !== -1) {
+        matches.push({
+          type: 'CUSTOM_TERM',
+          value: text.slice(idx, idx + term.length),
+          start: idx,
+          end: idx + term.length,
+          term: term
+        });
+        idx += term.length;
+      }
+    }
+
+    return matches;
+  }
+
+  /**
+   * Detect all matches: built-in patterns + custom terms.
+   */
+  function detectAllMatches(text) {
+    const builtIn = detectMatchesWithRanges(text);
+    const custom = detectCustomTerms(text);
+    return builtIn.concat(custom);
+  }
+
+  // ============================================================================
+  // MICRO-LESSONS — shown after anonymizing, friendly and encouraging
+  // ============================================================================
+  const MICRO_LESSONS = {
+    EMAIL: {
+      headline: 'Good habit.',
+      tip: 'Email addresses belong to real people. Keeping them out of AI tools means those contacts stay in control of their own data.',
+    },
+    PHONE: {
+      headline: 'Nice catch.',
+      tip: 'Phone numbers are personal identifiers. Anonymising them is a small act of respect — and good data hygiene.',
+    },
+    IBAN: {
+      headline: 'Well handled.',
+      tip: 'Bank details can end up in AI conversation logs. A quick anonymise keeps everyone\'s finances private.',
+    },
+    CREDIT_CARD: {
+      headline: 'Good call.',
+      tip: 'Card numbers should stay off AI systems entirely. That reflex will serve you well.',
+    },
+    ADDRESS: {
+      headline: 'Nice one.',
+      tip: 'Home addresses are personal. Anonymising means the person behind that address stays protected.',
+    },
+    PASSWORD: {
+      headline: 'Great catch.',
+      tip: 'Credentials in prompts can slip into AI logs. You just kept your system secure.',
+    },
+    CUSTOM_TERM: {
+      headline: 'Smart move.',
+      tip: 'Your organisation flagged that term for a reason. When in doubt, anonymise — you made the right call.',
+    },
+    DEFAULT: {
+      headline: 'Good instinct.',
+      tip: 'Reviewing data before it reaches an AI tool is exactly the right habit. Keep it up.',
+    },
+  };
+
+  /**
+   * Get the most significant lesson for a set of detected types.
+   * Priority: CREDIT_CARD > IBAN > PASSWORD > PHONE > EMAIL > ADDRESS > CUSTOM_TERM
+   */
+  function getMicroLesson(types) {
+    const priority = ['CREDIT_CARD', 'IBAN', 'PASSWORD', 'PHONE', 'EMAIL', 'ADDRESS', 'CUSTOM_TERM'];
+    for (const p of priority) {
+      if (types.includes(p)) return MICRO_LESSONS[p];
+    }
+    return MICRO_LESSONS.DEFAULT;
+  }
+
+  /**
+   * Replace the modal body with a brief, friendly success state,
+   * then auto-dismiss after 3.5 seconds.
+   */
+  function showMicroLesson(modal, types) {
+    if (!modal) return;
+
+    const lesson = getMicroLesson(types);
+
+    // Swap content — keep the modal frame but replace the body
+    const body = modal.querySelector('.pf-body');
+    const header = modal.querySelector('.pf-header');
+    const footer = modal.querySelector('.pf-footer');
+    const teamCta = modal.querySelector('.pf-team-cta');
+
+    if (header) header.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    if (teamCta) teamCta.style.display = 'none';
+
+    if (body) {
+      body.innerHTML = `
+        <div style="text-align:center;padding:8px 0 4px;">
+          <div class="pf-lesson-check">✓</div>
+          <div style="font-size:15px;font-weight:600;color:var(--pf-text);margin-bottom:8px;">${lesson.headline}</div>
+          <div style="font-size:13px;color:var(--pf-text-secondary);line-height:1.6;max-width:320px;margin:0 auto;">${lesson.tip}</div>
+        </div>
+      `;
+    }
+
+    // Remove the block/warn border styling, add a calm style
+    modal.className = 'pf-modal';
+    modal.style.border = '1px solid #bbf7d0';
+
+    // Auto-dismiss
+    setTimeout(function() {
+      closeModalSafely();
+    }, 3500);
   }
 
   // ============================================================================
@@ -863,6 +1133,86 @@
         console.error('[PromptFence] Insert failed:', e);
       }
     }
+  }
+
+  function replaceTextInTarget(target, text) {
+    if (!target) return;
+
+    try {
+      if (target.tagName.toLowerCase() === 'textarea' || target.tagName.toLowerCase() === 'input') {
+        target.value = text;
+        target.selectionStart = target.selectionEnd = text.length;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      } else if (target.isContentEditable) {
+        target.textContent = text;
+        // Move cursor to end
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    } catch (e) {
+      if (debugMode) {
+        console.error('[PromptFence] Replace failed:', e);
+      }
+    }
+  }
+
+  // ============================================================================
+  // POLICY ACKNOWLEDGMENT (Team mode)
+  // ============================================================================
+
+  /**
+   * Check if policy needs to be acknowledged before extension activates.
+   */
+  function needsPolicyAcknowledgment() {
+    if (!isTeamMode()) return false;
+    if (!teamConfig.policyText) return false;
+    return !teamConfig.policyAcknowledged;
+  }
+
+  function showPolicyGate() {
+    if (disabledDueToRuntime) return;
+
+    const root = ensureShadowRoot();
+    clearModal();
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'pf-backdrop';
+    root.appendChild(backdrop);
+
+    const modal = document.createElement('div');
+    modal.className = 'pf-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+
+    const orgName = localConfig?.orgName || 'Your organization';
+    const policyText = teamConfig.policyText || '';
+
+    modal.innerHTML = `
+      <div class="pf-onboarding">
+        <div class="pf-onboarding-title">AI Usage Policy</div>
+        <div class="pf-onboarding-sub">${orgName} requires you to review their AI usage policy before continuing.</div>
+        <div style="max-height:200px;overflow-y:auto;background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:8px;padding:12px;margin:12px 0;font-size:13px;line-height:1.6;color:var(--pf-text-secondary);white-space:pre-wrap;">${policyText}</div>
+        <div class="pf-actions">
+          <button class="pf-btn pf-btn--primary" data-action="acknowledge">I acknowledge this policy</button>
+        </div>
+      </div>
+    `;
+
+    root.appendChild(modal);
+
+    const ackBtn = modal.querySelector('[data-action="acknowledge"]');
+    ackBtn.addEventListener('click', function() {
+      safeSendMessage({ type: 'ACKNOWLEDGE_POLICY' });
+      if (teamConfig) teamConfig.policyAcknowledged = true;
+      closeModalSafely();
+    });
+
+    ackBtn.focus();
   }
 
   // ============================================================================
@@ -934,7 +1284,7 @@
   // ============================================================================
   // DETECTION MODAL
   // ============================================================================
-  function showModal(matches, action, originalText, targetElement) {
+  function showModal(matches, action, originalText, targetElement, source) {
     if (disabledDueToRuntime) return;
 
     const root = ensureShadowRoot();
@@ -944,6 +1294,7 @@
     pendingText = originalText;
     pendingMatches = matches;
     pendingTarget = targetElement;
+    pendingSource = source || 'paste';
 
     const isBlock = action === 'BLOCK';
     const preset = getCurrentPreset();
@@ -1013,7 +1364,9 @@
         </div>
       </div>
       <div class="pf-footer">
-        <button class="pf-link" data-action="settings">Settings</button>
+        ${isTeamMode() && localConfig.orgName
+          ? `<span class="pf-org-label">Policy set by ${localConfig.orgName}</span>`
+          : `<button class="pf-link" data-action="settings">Settings</button>`}
       </div>
     `;
 
@@ -1027,18 +1380,24 @@
     const settingsBtn = modal.querySelector('[data-action="settings"]');
 
     anonymizeBtn.addEventListener('click', function() {
+      const detectedTypes = pendingMatches ? [...new Set(pendingMatches.map(m => m.type))] : [];
       try {
         const anonymized = anonymizeText(pendingText, pendingMatches);
-        insertTextIntoTarget(pendingTarget, anonymized);
+        if (pendingSource === 'submit') {
+          replaceTextInTarget(pendingTarget, anonymized);
+        } else {
+          insertTextIntoTarget(pendingTarget, anonymized);
+        }
         if (debugMode) {
-          console.log('[PromptFence] Anonymized and inserted');
+          console.log('[PromptFence] Anonymized and', pendingSource === 'submit' ? 'replaced' : 'inserted');
         }
       } catch (e) {
         if (debugMode) {
           console.error('[PromptFence] Anonymize error:', e);
         }
       }
-      closeModalSafely();
+      // Show friendly micro-lesson instead of abruptly closing
+      showMicroLesson(modal, detectedTypes);
     });
 
     if (cancelBtn) {
@@ -1077,10 +1436,32 @@
       });
     }
 
-    settingsBtn.addEventListener('click', function() {
-      safeOpenOptionsPage();
-      // Don't close modal - let user continue after viewing settings
-    });
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', function() {
+        safeOpenOptionsPage();
+      });
+    }
+
+    // Team CTA (only in personal mode)
+    if (!isTeamMode()) {
+      safeStorageGet(['installCode'], 'local').then(function(result) {
+        if (!result.installCode && shadowRoot) {
+          const cta = document.createElement('div');
+          cta.className = 'pf-team-cta';
+          cta.innerHTML = `
+            <div class="pf-team-cta-content">
+              <span class="pf-team-cta-icon">${ICONS.shield}</span>
+              <div class="pf-team-cta-text">
+                <strong>Protect your whole team</strong>
+                <span>Company-wide rules and audit trail.</span>
+              </div>
+              <a class="pf-team-cta-link" href="https://promptfence.ai/teams" target="_blank" rel="noopener">Start free trial &rarr;</a>
+            </div>
+          `;
+          modal.appendChild(cta);
+        }
+      });
+    }
 
     // Keyboard handling
     function handleKeydown(e) {
@@ -1134,6 +1515,14 @@
       return;
     }
 
+    // If policy needs acknowledgment, show gate and block
+    if (needsPolicyAcknowledgment()) {
+      event.preventDefault();
+      event.stopPropagation();
+      showPolicyGate();
+      return;
+    }
+
     try {
       let target = document.activeElement || event.target;
       target = findEditableAncestor(target);
@@ -1142,8 +1531,8 @@
       const text = getPastedText(event);
       if (!text) return;
 
-      // Use detectMatchesWithRanges for full match info
-      const matches = detectMatchesWithRanges(text);
+      // Detect built-in patterns + custom terms
+      const matches = detectAllMatches(text);
       if (matches.length === 0) return;
 
       const types = [...new Set(matches.map(m => m.type))];
@@ -1153,6 +1542,14 @@
       // Always prevent default paste - we handle insertion
       event.preventDefault();
       event.stopPropagation();
+
+      // Report event to backend in team mode
+      if (isTeamMode()) {
+        safeSendMessage({
+          type: 'POST_EVENT',
+          eventData: { action, dataTypes: types, aiDomain: window.location.hostname, source: 'paste' }
+        });
+      }
 
       showModal(matches, action, text, target);
       if (debugMode) {
@@ -1169,5 +1566,155 @@
 
   document.addEventListener('paste', handlePaste, true);
   pasteHandlerAttached = true;
+
+  // ============================================================================
+  // SUBMIT GUARD — scan full prompt text at send time
+  // ============================================================================
+
+  /** Site-specific selectors for send button and prompt input. */
+  const SITE_SELECTORS = {
+    'chatgpt.com': {
+      sendBtn: '[data-testid="send-button"]',
+      input: '#prompt-textarea, [contenteditable="true"]'
+    },
+    'chat.openai.com': {
+      sendBtn: '[data-testid="send-button"]',
+      input: '#prompt-textarea, [contenteditable="true"]'
+    },
+    'claude.ai': {
+      sendBtn: 'button[aria-label="Send Message"]',
+      input: '[contenteditable="true"], .ProseMirror'
+    },
+    'gemini.google.com': {
+      sendBtn: '.send-button, button[aria-label="Send message"]',
+      input: '.ql-editor, [contenteditable="true"], textarea'
+    }
+  };
+
+  const siteHostname = window.location.hostname;
+  const siteConf = SITE_SELECTORS[siteHostname] || null;
+
+  /** Flag to temporarily disable the guard (for "Send anyway"). */
+  let submitGuardActive = true;
+
+  function getPromptText() {
+    const selectors = siteConf ? siteConf.input : 'textarea, [contenteditable="true"]';
+    const el = document.querySelector(selectors);
+    if (!el) return '';
+    if (el.tagName && el.tagName.toLowerCase() === 'textarea') {
+      return el.value || '';
+    }
+    return el.innerText || '';
+  }
+
+  function getPromptElement() {
+    const selectors = siteConf ? siteConf.input : 'textarea, [contenteditable="true"]';
+    return document.querySelector(selectors);
+  }
+
+  function triggerNativeSend() {
+    const btnSel = siteConf ? siteConf.sendBtn : null;
+    if (btnSel) {
+      const btn = document.querySelector(btnSel);
+      if (btn) {
+        submitGuardActive = false;
+        btn.click();
+        setTimeout(function() { submitGuardActive = true; }, 0);
+        return;
+      }
+    }
+    // Fallback: dispatch Enter on the input
+    const input = getPromptElement();
+    if (input) {
+      submitGuardActive = false;
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true, cancelable: true
+      }));
+      setTimeout(function() { submitGuardActive = true; }, 0);
+    }
+  }
+
+  function interceptSubmit(event) {
+    if (!submitGuardActive || disabledDueToRuntime) return false;
+
+    if (needsPolicyAcknowledgment()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      showPolicyGate();
+      return true;
+    }
+
+    const text = getPromptText();
+    if (!text) return false;
+
+    const matches = detectAllMatches(text);
+    if (matches.length === 0) return false;
+
+    const types = [...new Set(matches.map(m => m.type))];
+    const result = determineAction(types);
+    if (result.action === 'ALLOW') return false;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    // Report event to backend in team mode
+    if (isTeamMode()) {
+      safeSendMessage({
+        type: 'POST_EVENT',
+        eventData: { action: result.action, dataTypes: types, aiDomain: window.location.hostname, source: 'submit' }
+      });
+    }
+
+    // For submit, show modal with the prompt element as target
+    const target = getPromptElement();
+    showModal(matches, result.action, text, target, 'submit');
+
+    if (debugMode) {
+      console.log('[PromptFence]', result.action, '(submit):', result.types.join(', '));
+    }
+
+    return true;
+  }
+
+  function handleSendClick(event) {
+    const btnSel = siteConf ? siteConf.sendBtn : null;
+    if (btnSel && !event.target.closest(btnSel)) return;
+    interceptSubmit(event);
+  }
+
+  function handleEnterKey(event) {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    const active = document.activeElement;
+    if (!active || !findEditableAncestor(active)) return;
+    interceptSubmit(event);
+  }
+
+  // Attach send-button listeners via MutationObserver
+  const observedSendBtns = new WeakSet();
+
+  function attachSendBtnListeners() {
+    let btnSel = siteConf ? siteConf.sendBtn : null;
+    if (!btnSel) {
+      btnSel = 'button[aria-label*="send" i], button[aria-label*="Send"], button[data-testid*="send"]';
+    }
+    const btns = document.querySelectorAll(btnSel);
+    btns.forEach(function(btn) {
+      if (!observedSendBtns.has(btn)) {
+        observedSendBtns.add(btn);
+        btn.addEventListener('click', handleSendClick, true);
+      }
+    });
+  }
+
+  attachSendBtnListeners();
+
+  const sendBtnObserver = new MutationObserver(function() {
+    attachSendBtnListeners();
+  });
+  sendBtnObserver.observe(document.body, { childList: true, subtree: true });
+
+  // Enter key listener (capture phase)
+  document.addEventListener('keydown', handleEnterKey, true);
+
   console.log('[PromptFence] Active on', window.location.hostname);
 })();

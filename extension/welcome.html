@@ -6,107 +6,188 @@
   <title>PromptFence</title>
   <link rel="stylesheet" href="design-tokens.css">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: var(--pf-font-family);
       background: var(--pf-bg);
       color: var(--pf-text-primary);
-      line-height: var(--pf-line-height-relaxed);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--pf-space-6);
+      width: 320px;
+      min-height: 200px;
     }
 
-    .container {
-      max-width: 340px;
-      text-align: center;
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--pf-border);
     }
 
     .logo {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto var(--pf-space-4);
+      width: 32px;
+      height: 32px;
       background: var(--pf-accent);
-      border-radius: 12px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .logo svg {
-      width: 28px;
-      height: 28px;
-      color: #fff;
-    }
-
-    h1 {
-      font-size: var(--pf-font-size-xl);
-      font-weight: var(--pf-font-semibold);
-      margin-bottom: var(--pf-space-2);
-    }
-
-    .tagline {
-      font-size: var(--pf-font-size-md);
-      color: var(--pf-text-muted);
-      margin-bottom: var(--pf-space-6);
-    }
-
-    .features {
-      text-align: left;
-      margin-bottom: var(--pf-space-6);
-    }
-
-    .feature {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--pf-space-3);
-      padding: var(--pf-space-2) 0;
-    }
-
-    .feature-bullet {
-      width: 6px;
-      height: 6px;
-      background: var(--pf-text-muted);
-      border-radius: 50%;
-      margin-top: 7px;
       flex-shrink: 0;
     }
 
-    .feature-text {
-      font-size: var(--pf-font-size-base);
-      color: var(--pf-text-secondary);
+    .logo svg {
+      width: 18px;
+      height: 18px;
+      color: #fff;
     }
 
-    .actions {
+    .header-text { flex: 1; }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--pf-text-primary);
+      line-height: 1.2;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: var(--pf-text-muted);
+      margin-top: 1px;
+    }
+
+    /* ── Status pill ── */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 99px;
+    }
+
+    .status-pill--active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-pill--team {
+      background: var(--pf-accent-light);
+      color: var(--pf-accent-text);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── Sections ── */
+    .section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--pf-border);
+    }
+
+    .section:last-child { border-bottom: none; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--pf-text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* ── Team connected card ── */
+    .team-card {
+      background: var(--pf-accent-light);
+      border: 1px solid var(--pf-accent-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .team-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--pf-accent-text);
+    }
+
+    .team-card-sub {
+      font-size: 11px;
+      color: var(--pf-accent-text);
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .team-card-disconnect {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--pf-text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    .team-card-disconnect:hover { color: #dc2626; }
+
+    /* ── Connect form ── */
+    .connect-form {
       display: flex;
-      flex-direction: column;
-      gap: var(--pf-space-2);
+      gap: 6px;
+    }
+
+    .connect-input {
+      flex: 1;
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      border: 1px solid var(--pf-border);
+      border-radius: 6px;
+      background: var(--pf-bg);
+      color: var(--pf-text-primary);
+      outline: none;
+    }
+
+    .connect-input::placeholder {
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--pf-text-faint);
+    }
+
+    .connect-input:focus {
+      border-color: var(--pf-accent);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .connect-input.error {
+      border-color: #dc2626;
     }
 
     .btn {
-      display: block;
       font-family: inherit;
-      font-size: var(--pf-font-size-md);
-      font-weight: var(--pf-font-medium);
-      padding: var(--pf-space-3) var(--pf-space-5);
-      border-radius: var(--pf-radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 6px;
       border: none;
       cursor: pointer;
-      text-decoration: none;
-      text-align: center;
       transition: all 0.15s;
+      white-space: nowrap;
     }
 
-    .btn:focus {
-      outline: 2px solid var(--pf-focus-ring);
-      outline-offset: 2px;
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .btn--primary {
@@ -114,63 +195,151 @@
       color: #fff;
     }
 
-    .btn--primary:hover {
-      background: var(--pf-accent-hover);
+    .btn--primary:hover:not(:disabled) { background: var(--pf-accent-hover); }
+
+    .btn--ghost {
+      background: none;
+      color: var(--pf-text-muted);
+      border: 1px solid var(--pf-border);
     }
 
-    .btn--link {
-      background: transparent;
+    .btn--ghost:hover:not(:disabled) {
+      background: var(--pf-surface);
+      color: var(--pf-text-primary);
+    }
+
+    .connect-error {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #dc2626;
+    }
+
+    .connect-hint {
+      margin-top: 6px;
+      font-size: 11px;
       color: var(--pf-text-muted);
     }
 
-    .btn--link:hover {
-      color: var(--pf-accent);
+    /* ── Footer actions ── */
+    .footer {
+      padding: 10px 16px;
+      display: flex;
+      gap: 6px;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--pf-border);
     }
+
+    .footer-link {
+      font-size: 12px;
+      color: var(--pf-text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+    }
+
+    .footer-link:hover { color: var(--pf-accent); }
 
     .trust {
-      font-size: var(--pf-font-size-xs);
-      color: var(--pf-text-muted);
-      margin-top: var(--pf-space-5);
+      font-size: 11px;
+      color: var(--pf-text-faint);
     }
 
+    /* ── Loading ── */
+    .loading {
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--pf-text-muted);
+      font-size: 13px;
+    }
+
+    /* ── Hidden ── */
+    .hidden { display: none !important; }
+
     @media (prefers-color-scheme: dark) {
-      body {
-        background: var(--pf-bg);
-      }
+      .status-pill--active { background: #14532d; color: #4ade80; }
+      .team-card { background: #1e3a5f; border-color: #2563eb; }
+      .team-card-name { color: #93c5fd; }
+      .team-card-sub { color: #93c5fd; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-      </svg>
-    </div>
-    <h1>PromptFence</h1>
-    <p class="tagline">Your personal AI safety layer</p>
+  <div id="loading" class="loading">Loading...</div>
 
-    <div class="features">
-      <div class="feature">
-        <div class="feature-bullet"></div>
-        <span class="feature-text">Detects possible sensitive data in AI chats</span>
+  <!-- Personal mode -->
+  <div id="view-personal" class="hidden">
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+        </svg>
       </div>
-      <div class="feature">
-        <div class="feature-bullet"></div>
-        <span class="feature-text">Pauses before sending so you can review</span>
+      <div class="header-text">
+        <div class="header-title">PromptFence</div>
+        <div class="header-sub">Personal protection</div>
       </div>
-      <div class="feature">
-        <div class="feature-bullet"></div>
-        <span class="feature-text">Runs 100% locally in your browser</span>
-      </div>
+      <span class="status-pill status-pill--active">
+        <span class="status-dot"></span>
+        Active
+      </span>
     </div>
 
-    <div class="actions">
-      <button class="btn btn--primary" id="open-settings">Open Settings</button>
-      <a href="privacy.html" target="_blank" class="btn btn--link">Read Privacy Policy</a>
+    <div class="section">
+      <div class="section-label">Connect to your team</div>
+      <div class="connect-form">
+        <input
+          id="code-input"
+          class="connect-input"
+          type="text"
+          placeholder="Team code"
+          maxlength="8"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="btn btn--primary" id="connect-btn">Connect</button>
+      </div>
+      <div id="connect-error" class="connect-error hidden"></div>
+      <div class="connect-hint">Enter the code from your admin or invite email.</div>
     </div>
 
-    <p class="trust">All detection runs locally</p>
+    <div class="footer">
+      <button class="footer-link" id="settings-btn">Settings</button>
+      <span class="trust">Local detection only</span>
+    </div>
+  </div>
+
+  <!-- Team mode -->
+  <div id="view-team" class="hidden">
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <div class="header-title">PromptFence</div>
+        <div class="header-sub">Team protection</div>
+      </div>
+      <span class="status-pill status-pill--team">
+        <span class="status-dot"></span>
+        Team
+      </span>
+    </div>
+
+    <div class="section">
+      <div class="team-card">
+        <div class="team-card-name" id="team-org-name">Your Organization</div>
+        <div class="team-card-sub">Policy managed by your admin</div>
+        <button class="team-card-disconnect" id="disconnect-btn">Disconnect</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="trust">Admin policy active</span>
+    </div>
   </div>
 
   <script src="welcome.js"></script>

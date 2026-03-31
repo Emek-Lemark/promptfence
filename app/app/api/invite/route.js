@@ -36,7 +36,7 @@ export async function POST(request) {
       `).run(installCode, org.id);
     }
 
-    const baseUrl = process.env.BASE_URL || 'https://promptfence.com';
+    const baseUrl = process.env.BASE_URL || 'https://promptfence.ai';
 
     return NextResponse.json({
       installCode,

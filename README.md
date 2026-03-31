@@ -41,6 +41,14 @@ PromptFence/
 4. Select the `extension` folder
 5. The extension is now active
 
+### Installation (Firefox)
+
+1. Run `cd extension && ./build.sh firefox` to build the Firefox package
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click "Load Temporary Add-on"
+4. Select the `manifest.json` from `extension/dist/firefox/`
+5. The extension is now active
+
 ### Running Tests
 
 ```bash
