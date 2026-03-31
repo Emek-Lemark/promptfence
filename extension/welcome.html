@@ -255,6 +255,56 @@
       font-size: 13px;
     }
 
+    /* ── Literacy score ── */
+    .literacy-bar-wrap {
+      margin-top: 10px;
+      background: var(--pf-surface);
+      border: 1px solid var(--pf-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .literacy-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .literacy-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--pf-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .literacy-score {
+      font-size: 13px;
+      font-weight: 700;
+      color: #7c3aed;
+    }
+
+    .literacy-track {
+      height: 5px;
+      background: var(--pf-border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .literacy-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #7c3aed, #a855f7);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    .literacy-sub {
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--pf-text-faint);
+    }
+
     /* ── Hidden ── */
     .hidden { display: none !important; }
 
@@ -305,6 +355,20 @@
       <div class="connect-hint">Enter the code from your admin or invite email.</div>
     </div>
 
+    <!-- Literacy score -->
+    <div class="section" id="literacy-section-personal">
+      <div class="literacy-bar-wrap">
+        <div class="literacy-row">
+          <span class="literacy-label">AI Literacy</span>
+          <span class="literacy-score" id="literacy-score-personal">0/100</span>
+        </div>
+        <div class="literacy-track">
+          <div class="literacy-fill" id="literacy-fill-personal" style="width:0%"></div>
+        </div>
+        <div class="literacy-sub" id="literacy-sub-personal">Getting started</div>
+      </div>
+    </div>
+
     <div class="footer">
       <button class="footer-link" id="settings-btn">Settings</button>
       <span class="trust">Local detection only</span>
@@ -334,6 +398,20 @@
         <div class="team-card-name" id="team-org-name">Your Organization</div>
         <div class="team-card-sub">Policy managed by your admin</div>
         <button class="team-card-disconnect" id="disconnect-btn">Disconnect</button>
+      </div>
+    </div>
+
+    <!-- Literacy score (team mode) -->
+    <div class="section" id="literacy-section-team">
+      <div class="literacy-bar-wrap">
+        <div class="literacy-row">
+          <span class="literacy-label">Your AI Literacy</span>
+          <span class="literacy-score" id="literacy-score-team">0/100</span>
+        </div>
+        <div class="literacy-track">
+          <div class="literacy-fill" id="literacy-fill-team" style="width:0%"></div>
+        </div>
+        <div class="literacy-sub" id="literacy-sub-team">Getting started</div>
       </div>
     </div>
 

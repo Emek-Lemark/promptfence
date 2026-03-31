@@ -108,7 +108,7 @@ export default function DashboardPage() {
             bgColor="#f0fdf4"
           />
           <StatCard
-            label="AI literacy"
+            label="Policy acknowledged"
             value={`${team.pctTrained ?? 0}%`}
             color="#7c3aed"
             bgColor="#f5f3ff"

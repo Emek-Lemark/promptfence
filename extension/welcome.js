@@ -5,6 +5,23 @@
 
 const API_BASE = 'https://app.promptfence.ai';
 
+// Score labels (mirrors lessons.js — duplicated here so welcome.js works standalone)
+function getScoreLabel(score) {
+  if (score >= 80) return 'Advanced';
+  if (score >= 50) return 'Developing';
+  if (score >= 20) return 'Learning';
+  return 'Getting started';
+}
+
+function renderLiteracyScore(score, fillId, scoreId, subId) {
+  const fill  = document.getElementById(fillId);
+  const label = document.getElementById(scoreId);
+  const sub   = document.getElementById(subId);
+  if (fill)  fill.style.width  = score + '%';
+  if (label) label.textContent = score + '/100';
+  if (sub)   sub.textContent   = getScoreLabel(score);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
   // ── Element refs ────────────────────────────────────────────────
@@ -19,8 +36,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const disconnectBtn = document.getElementById('disconnect-btn');
 
   // ── Boot: decide which view to show ────────────────────────────
-  chrome.storage.local.get(['installCode', 'teamConfig'], function (result) {
+  chrome.storage.local.get(['installCode', 'teamConfig', 'pfLiteracy'], function (result) {
     loading.classList.add('hidden');
+
+    // Render literacy score
+    const literacy = result.pfLiteracy || {};
+    const score = literacy.score || 0;
+    renderLiteracyScore(score, 'literacy-fill-personal', 'literacy-score-personal', 'literacy-sub-personal');
+    renderLiteracyScore(score, 'literacy-fill-team',     'literacy-score-team',     'literacy-sub-team');
 
     if (result.installCode) {
       showTeamView(result.teamConfig);

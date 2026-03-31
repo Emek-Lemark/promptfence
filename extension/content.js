@@ -995,92 +995,83 @@
   }
 
   // ============================================================================
-  // MICRO-LESSONS — shown after anonymizing, friendly and encouraging
+  // PROGRESSIVE MICRO-LESSONS — shown after anonymizing, friendly + educational
+  // Uses PFLessons from lessons.js (loaded before content.js in manifest)
   // ============================================================================
-  const MICRO_LESSONS = {
-    EMAIL: {
-      headline: 'Good habit.',
-      tip: 'Email addresses belong to real people. Keeping them out of AI tools means those contacts stay in control of their own data.',
-    },
-    PHONE: {
-      headline: 'Nice catch.',
-      tip: 'Phone numbers are personal identifiers. Anonymising them is a small act of respect — and good data hygiene.',
-    },
-    IBAN: {
-      headline: 'Well handled.',
-      tip: 'Bank details can end up in AI conversation logs. A quick anonymise keeps everyone\'s finances private.',
-    },
-    CREDIT_CARD: {
-      headline: 'Good call.',
-      tip: 'Card numbers should stay off AI systems entirely. That reflex will serve you well.',
-    },
-    ADDRESS: {
-      headline: 'Nice one.',
-      tip: 'Home addresses are personal. Anonymising means the person behind that address stays protected.',
-    },
-    PASSWORD: {
-      headline: 'Great catch.',
-      tip: 'Credentials in prompts can slip into AI logs. You just kept your system secure.',
-    },
-    CUSTOM_TERM: {
-      headline: 'Smart move.',
-      tip: 'Your organisation flagged that term for a reason. When in doubt, anonymise — you made the right call.',
-    },
-    DEFAULT: {
-      headline: 'Good instinct.',
-      tip: 'Reviewing data before it reaches an AI tool is exactly the right habit. Keep it up.',
-    },
-  };
 
   /**
-   * Get the most significant lesson for a set of detected types.
-   * Priority: CREDIT_CARD > IBAN > PASSWORD > PHONE > EMAIL > ADDRESS > CUSTOM_TERM
-   */
-  function getMicroLesson(types) {
-    const priority = ['CREDIT_CARD', 'IBAN', 'PASSWORD', 'PHONE', 'EMAIL', 'ADDRESS', 'CUSTOM_TERM'];
-    for (const p of priority) {
-      if (types.includes(p)) return MICRO_LESSONS[p];
-    }
-    return MICRO_LESSONS.DEFAULT;
-  }
-
-  /**
-   * Replace the modal body with a brief, friendly success state,
-   * then auto-dismiss after 3.5 seconds.
+   * Replace the modal body with a progressive lesson based on how many times
+   * this user has seen this data type before. Auto-dismisses after 4 seconds.
+   * Also updates the literacy score in storage.
    */
   function showMicroLesson(modal, types) {
     if (!modal) return;
 
-    const lesson = getMicroLesson(types);
-
-    // Swap content — keep the modal frame but replace the body
-    const body = modal.querySelector('.pf-body');
-    const header = modal.querySelector('.pf-header');
-    const footer = modal.querySelector('.pf-footer');
+    // Swap out modal chrome immediately so user sees feedback at once
+    const body    = modal.querySelector('.pf-body');
+    const header  = modal.querySelector('.pf-header');
+    const footer  = modal.querySelector('.pf-footer');
     const teamCta = modal.querySelector('.pf-team-cta');
 
-    if (header) header.style.display = 'none';
-    if (footer) footer.style.display = 'none';
+    if (header)  header.style.display  = 'none';
+    if (footer)  footer.style.display  = 'none';
     if (teamCta) teamCta.style.display = 'none';
 
+    // Show a brief spinner-free placeholder immediately
     if (body) {
       body.innerHTML = `
         <div style="text-align:center;padding:8px 0 4px;">
           <div class="pf-lesson-check">✓</div>
-          <div style="font-size:15px;font-weight:600;color:var(--pf-text);margin-bottom:8px;">${lesson.headline}</div>
-          <div style="font-size:13px;color:var(--pf-text-secondary);line-height:1.6;max-width:320px;margin:0 auto;">${lesson.tip}</div>
+          <div style="font-size:15px;font-weight:600;color:var(--pf-text);margin-bottom:8px;">Anonymized.</div>
+          <div style="font-size:13px;color:var(--pf-text-muted);">Loading your lesson…</div>
         </div>
       `;
     }
 
-    // Remove the block/warn border styling, add a calm style
     modal.className = 'pf-modal';
     modal.style.border = '1px solid #bbf7d0';
 
-    // Auto-dismiss
+    // Use progressive lesson system if available; fall back to static
+    if (typeof PFLessons !== 'undefined') {
+      PFLessons.recordDetection(types, true, function(lesson, literacyData) {
+        if (!body || !shadowRoot) return; // modal may have been dismissed
+
+        const scoreLabel = PFLessons.getScoreLabel(literacyData.score);
+        const contextHtml = lesson.context
+          ? `<div style="margin-top:10px;padding:8px 12px;background:var(--pf-surface);border-radius:6px;font-size:12px;color:var(--pf-text-muted);line-height:1.5;border-left:3px solid #bbf7d0;">${lesson.context}</div>`
+          : '';
+
+        body.innerHTML = `
+          <div style="text-align:center;padding:8px 0 4px;">
+            <div class="pf-lesson-check">✓</div>
+            <div style="font-size:15px;font-weight:600;color:var(--pf-text);margin-bottom:8px;">${lesson.headline}</div>
+            <div style="font-size:13px;color:var(--pf-text-secondary);line-height:1.6;max-width:320px;margin:0 auto;">${lesson.tip}</div>
+            ${contextHtml}
+            <div style="margin-top:14px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--pf-surface);border-radius:99px;font-size:11px;color:var(--pf-text-muted);">
+              <span style="color:#7c3aed;font-weight:600;">AI Literacy</span>
+              <span style="font-weight:700;color:var(--pf-text);">${literacyData.score}/100</span>
+              <span style="color:var(--pf-text-muted);">· ${scoreLabel}</span>
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      // Fallback: static lesson (PFLessons not loaded)
+      if (body) {
+        body.innerHTML = `
+          <div style="text-align:center;padding:8px 0 4px;">
+            <div class="pf-lesson-check">✓</div>
+            <div style="font-size:15px;font-weight:600;color:var(--pf-text);margin-bottom:8px;">Good instinct.</div>
+            <div style="font-size:13px;color:var(--pf-text-secondary);line-height:1.6;max-width:320px;margin:0 auto;">Reviewing data before it reaches an AI tool is exactly the right habit. Keep it up.</div>
+          </div>
+        `;
+      }
+    }
+
+    // Auto-dismiss after 4 seconds
     setTimeout(function() {
       closeModalSafely();
-    }, 3500);
+    }, 4000);
   }
 
   // ============================================================================
