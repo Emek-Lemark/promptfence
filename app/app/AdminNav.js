@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/policy', label: 'Policy' },
   { href: '/team', label: 'Team' },
   { href: '/events', label: 'Events' },
+  { href: '/billing', label: 'Billing' },
 ];
 
 export default function AdminNav({ active, orgName }) {

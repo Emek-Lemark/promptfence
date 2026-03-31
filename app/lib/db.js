@@ -163,6 +163,14 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
   `);
+
+  // Migrations — safe to run repeatedly
+  const migrations = [
+    `ALTER TABLE orgs ADD COLUMN paddle_customer_id TEXT`,
+  ];
+  for (const sql of migrations) {
+    try { db.exec(sql); } catch { /* column already exists */ }
+  }
 }
 
 module.exports = { getDb };

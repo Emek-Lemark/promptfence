@@ -65,7 +65,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { week, allTime, team, topTypes, topPlatforms, unacknowledgedBlocks, recentEvents, platformDiscovery } = data;
+  const { week, allTime, team, topTypes, topPlatforms, unacknowledgedBlocks, recentEvents, platformDiscovery, trialDaysLeft } = data;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
@@ -108,6 +108,34 @@ export default function DashboardPage() {
             bgColor="#f0fdf4"
           />
         </div>
+
+        {/* Trial expiry warning banner */}
+        {trialDaysLeft !== null && trialDaysLeft <= 7 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: trialDaysLeft <= 2 ? '#fef2f2' : '#fffbeb',
+            border: `1px solid ${trialDaysLeft <= 2 ? '#fca5a5' : '#fcd34d'}`,
+            borderRadius: 8,
+            padding: '12px 20px',
+            marginBottom: 16,
+          }}>
+            <span style={{ color: trialDaysLeft <= 2 ? '#991b1b' : '#92400e', fontWeight: 500, fontSize: 14 }}>
+              {trialDaysLeft === 0
+                ? 'Your trial expires today — upgrade to keep your policy active'
+                : `Your trial ends in ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''}`}
+            </span>
+            <Link href="/billing" style={{
+              color: trialDaysLeft <= 2 ? '#991b1b' : '#92400e',
+              fontWeight: 600,
+              fontSize: 14,
+              textDecoration: 'underline',
+            }}>
+              View plans
+            </Link>
+          </div>
+        )}
 
         {/* Unacknowledged blocks banner */}
         {unacknowledgedBlocks > 0 && (

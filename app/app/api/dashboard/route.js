@@ -11,15 +11,23 @@ export async function GET(request) {
     const db = getDb();
     const orgId = auth.user.orgId;
 
-    // Trial gate — super plan bypasses, everything else checks expiry
+    // Trial gate — super/active plans bypass; trial, cancelled or expired → 402
     const orgRow = db.prepare('SELECT plan, trial_ends_at FROM orgs WHERE id = ?').get(orgId);
     const isSuperPlan = orgRow?.plan === 'super' || orgRow?.plan === 'active';
+    const isCancelled = orgRow?.plan === 'cancelled';
     const trialExpired = !isSuperPlan &&
       orgRow?.trial_ends_at &&
       new Date(orgRow.trial_ends_at) < new Date();
 
-    if (trialExpired) {
+    if (trialExpired || isCancelled) {
       return NextResponse.json({ trialExpired: true }, { status: 402 });
+    }
+
+    // Trial days warning (pass back to dashboard for banner)
+    let trialDaysLeft = null;
+    if (orgRow?.plan === 'trial' && orgRow?.trial_ends_at) {
+      const diff = new Date(orgRow.trial_ends_at) - new Date();
+      trialDaysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     }
 
     // Time ranges
@@ -135,6 +143,7 @@ export async function GET(request) {
         userEmail: e.user_email,
       })),
       platformDiscovery: platformVisits,
+      trialDaysLeft,
     });
   } catch (error) {
     console.error('Dashboard error:', error);
