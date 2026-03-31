@@ -199,6 +199,21 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_compliance_reports_org_id ON compliance_reports(org_id);
   `);
 
+  // Password reset tokens
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      token TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      used_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_user_id ON password_resets(user_id);
+  `);
+
   // Migrations — safe to run repeatedly
   const migrations = [
     `ALTER TABLE orgs ADD COLUMN paddle_customer_id TEXT`,
