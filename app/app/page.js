@@ -1,234 +1,407 @@
 import Link from 'next/link';
 import PricingToggle from './PricingToggle';
-import styles from './page.module.css';
+import s from './page.module.css';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      {/* Nav */}
-      <nav className={styles.topNav}>
-        <div className={styles.topNavInner}>
-          <span className={styles.logo}>PromptFence</span>
-          <div className={styles.topNavLinks}>
+    <div className={s.page}>
+
+      {/* ── NAV ─────────────────────────────────────────────────────── */}
+      <nav className={s.nav}>
+        <div className={s.navInner}>
+          <Link href="/" className={s.navLogo}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
+                fill="#3b82f6" opacity="0.15" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round"/>
+              <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
+                fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round"/>
+              <line x1="12" y1="2" x2="12" y2="22" stroke="#3b82f6" strokeWidth="1" opacity="0.4"/>
+            </svg>
+            <span>PromptFence</span>
+          </Link>
+          <div className={s.navLinks}>
             <a href="#how-it-works">How it works</a>
             <a href="#pricing">Pricing</a>
             <a href="#compliance">Compliance</a>
-            <Link href="/login">Log in</Link>
-            <Link href="/signup" className={styles.navCta}>Start free trial</Link>
+            <a href="#developers">Developers</a>
+          </div>
+          <div className={s.navActions}>
+            <Link href="/login" className={s.navLogin}>Log in</Link>
+            <Link href="/signup" className={s.navCta}>Start free trial</Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className={styles.hero}>
-        <div className={styles.container}>
-          <h1 className={styles.heroTitle}>
-            Stop sensitive data from reaching AI&nbsp;tools
-          </h1>
-          <p className={styles.heroSub}>
-            PromptFence detects emails, phone numbers, bank details, and API keys before they leave your browser. 100% local. Nothing to configure. GDPR&#8209;compliant by&nbsp;design.
+      {/* ── HERO ────────────────────────────────────────────────────── */}
+      <section className={s.hero}>
+        <div className={s.heroInner}>
+          <div className={s.heroText}>
+            <div className={s.eyebrow}>
+              <span className={s.eyebrowDot} />
+              AI Data Protection
+            </div>
+            <h1 className={s.h1}>
+              Your team is pasting<br />
+              client data into<br />
+              <span className={s.h1Accent}>ChatGPT.</span>
+            </h1>
+            <p className={s.heroSub}>
+              PromptFence catches emails, IBANs, passwords, and national IDs
+              before they reach any AI tool — in real time, in the browser,
+              with nothing sent anywhere.
+            </p>
+            <div className={s.heroCtas}>
+              <Link href="/signup" className={s.btnPrimary}>
+                Start free 14-day trial
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"/>
+                </svg>
+              </Link>
+              <a href="https://chromewebstore.google.com/detail/promptfence" target="_blank" rel="noopener" className={s.btnGhost}>
+                Install free extension
+              </a>
+            </div>
+            <div className={s.trustRow}>
+              <span>✓ No credit card</span>
+              <span>✓ 100% local processing</span>
+              <span>✓ GDPR-compliant</span>
+            </div>
+          </div>
+
+          {/* Live product demo */}
+          <div className={s.heroDemo}>
+            <div className={s.demoCard}>
+              <div className={s.demoHeader}>
+                <div className={s.demoDots}>
+                  <span /><span /><span />
+                </div>
+                <span className={s.demoTitle}>ChatGPT</span>
+                <span className={s.demoStatus}>
+                  <span className={s.demoStatusDot} />
+                  PromptFence active
+                </span>
+              </div>
+              <div className={s.demoBody}>
+                <div className={s.demoPromptLabel}>Your message</div>
+                <div className={s.demoPrompt}>
+                  <span>Can you draft a follow-up to </span>
+                  <span className={s.demoHighlight} data-type="EMAIL">alice@acme.com</span>
+                  <span> about invoice </span>
+                  <span className={s.demoHighlight} data-type="IBAN">GB33BUKB20201555555555</span>
+                  <span> from last quarter?</span>
+                </div>
+                <div className={s.demoBlock}>
+                  <div className={s.demoBlockHeader}>
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    </svg>
+                    Blocked — 2 items detected
+                  </div>
+                  <div className={s.demoMatches}>
+                    <div className={s.demoMatch}>
+                      <code className={s.demoMatchType}>EMAIL</code>
+                      <span className={s.demoMatchVal}>alice@acme.com</span>
+                    </div>
+                    <div className={s.demoMatch}>
+                      <code className={s.demoMatchType}>IBAN</code>
+                      <span className={s.demoMatchVal}>GB33BUKB2020…5555</span>
+                    </div>
+                  </div>
+                  <div className={s.demoActions}>
+                    <button className={s.demoAnon}>Anonymise and send</button>
+                    <button className={s.demoCancel}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating stat */}
+            <div className={s.demoStat}>
+              <span className={s.demoStatNum}>847</span>
+              <span className={s.demoStatLabel}>items blocked this month</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── LOGOS / PLATFORMS ───────────────────────────────────────── */}
+      <div className={s.platforms}>
+        <div className={s.container}>
+          <p className={s.platformsLabel}>Scans everything your team types into</p>
+          <div className={s.platformList}>
+            {['ChatGPT', 'Claude', 'Gemini', 'Copilot', 'Perplexity', 'Slack', 'Notion', 'Gmail', 'Linear', 'Outlook'].map(p => (
+              <span key={p} className={s.platformItem}>{p}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── PROBLEM ─────────────────────────────────────────────────── */}
+      <section className={s.section} id="problem">
+        <div className={s.container}>
+          <div className={s.sectionLabel}>[ 01 ] THE PROBLEM</div>
+          <h2 className={s.h2}>
+            Sensitive data is leaking<br />into AI tools every day.
+          </h2>
+          <p className={s.sectionSub}>
+            Most teams have no visibility into what their employees paste into ChatGPT, Claude, or Gemini.
+            One careless prompt can expose client data, trigger a GDPR fine, or fail a compliance audit.
           </p>
-          <div className={styles.heroCtas}>
-            <Link href="/signup" className={styles.btnPrimary}>Start free team trial</Link>
-            <a
-              href="https://chromewebstore.google.com/detail/promptfence"
-              target="_blank"
-              rel="noopener"
-              className={styles.btnSecondary}
-            >
-              Install free extension
-            </a>
-          </div>
-          <div className={styles.trustBadges}>
-            <span className={styles.trustBadge}>
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a.75.75 0 01.596.3l6 8a.75.75 0 01-.596 1.2H4a.75.75 0 01-.596-1.2l6-8A.75.75 0 0110 1zM4.5 13a.75.75 0 01.75-.75h9.5a.75.75 0 010 1.5h-9.5a.75.75 0 01-.75-.75zm2 3a.75.75 0 01.75-.75h5.5a.75.75 0 010 1.5h-5.5a.75.75 0 01-.75-.75z" clipRule="evenodd"/></svg>
-              100% local processing
-            </span>
-            <span className={styles.trustBadge}>
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>
-              No data collection
-            </span>
-            <span className={styles.trustBadge}>
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-              GDPR compliant
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className={styles.sectionAlt} id="problem">
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Your team is pasting client data into ChatGPT</h2>
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>68%</span>
-              <span className={styles.statLabel}>of employees paste sensitive data into AI tools without checking</span>
-            </div>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>&euro;4.2M</span>
-              <span className={styles.statLabel}>average cost of a GDPR fine in 2024</span>
-            </div>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>SOC2</span>
-              <span className={styles.statLabel}>auditors now ask about AI data governance controls</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className={styles.section} id="how-it-works">
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Protected in three steps</h2>
-          <div className={styles.stepsGrid}>
-            <div className={styles.step}>
-              <div className={styles.stepNumber}>1</div>
-              <h3>Install</h3>
-              <p>Admin signs up, shares a link with the team. Extension installs in one click.</p>
-            </div>
-            <div className={styles.step}>
-              <div className={styles.stepNumber}>2</div>
-              <h3>Detect</h3>
-              <p>Extension scans paste and submit events locally in the browser. Nothing leaves the device.</p>
-            </div>
-            <div className={styles.step}>
-              <div className={styles.stepNumber}>3</div>
-              <h3>Protect</h3>
-              <p>Sensitive data is blocked or anonymized before it reaches the AI. Admin sees aggregate stats.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* What we detect */}
-      <section className={styles.sectionAlt} id="detection">
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>What we detect</h2>
-          <div className={styles.detectGrid}>
-            <div className={styles.detectCard}>
-              <span className={styles.detectIcon}>@</span>
-              <h4>Email addresses</h4>
-            </div>
-            <div className={styles.detectCard}>
-              <span className={styles.detectIcon}>#</span>
-              <h4>Phone numbers</h4>
-            </div>
-            <div className={styles.detectCard}>
-              <span className={styles.detectIcon}>IBAN</span>
-              <h4>Bank accounts</h4>
-            </div>
-            <div className={styles.detectCard}>
-              <span className={styles.detectIcon}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/></svg>
-              </span>
-              <h4>Credit cards</h4>
-            </div>
-            <div className={styles.detectCard}>
-              <span className={styles.detectIcon}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
-              </span>
-              <h4>Addresses (EU + US/UK)</h4>
-            </div>
-            <div className={styles.detectCard}>
-              <span className={styles.detectIcon}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clipRule="evenodd"/></svg>
-              </span>
-              <h4>API keys &amp; secrets</h4>
-            </div>
-          </div>
-          <p className={styles.detectNote}>All detection runs locally in your browser. We never see your data.</p>
-        </div>
-      </section>
-
-      {/* Platform coverage */}
-      <section className={styles.section} id="platforms">
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Works everywhere your team uses AI</h2>
-          <div className={styles.platformGrid}>
-            {['ChatGPT', 'Claude', 'Gemini', 'Slack', 'Gmail', 'Notion', 'Linear', 'Outlook'].map(name => (
-              <div key={name} className={styles.platformBadge}>{name}</div>
+          <div className={s.statsGrid}>
+            {[
+              { n: '68%', label: 'of employees admit to pasting sensitive data into AI tools without thinking twice' },
+              { n: '€4.2M', label: 'average cost of a GDPR fine. AI data leaks are the newest vector.' },
+              { n: '2025', label: 'EU AI Act enforcement begins. Auditors are asking for proof of AI governance controls.' },
+            ].map(({ n, label }) => (
+              <div key={n} className={s.statCard}>
+                <span className={s.statNum}>{n}</span>
+                <span className={s.statLabel}>{label}</span>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className={styles.sectionAlt} id="pricing">
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Simple, transparent pricing</h2>
-          <PricingToggle />
+      {/* ── HOW IT WORKS ────────────────────────────────────────────── */}
+      <section className={s.sectionAlt} id="how-it-works">
+        <div className={s.container}>
+          <div className={s.sectionLabel}>[ 02 ] HOW IT WORKS</div>
+          <h2 className={s.h2}>Protected in three steps.</h2>
+          <div className={s.stepsGrid}>
+            {[
+              {
+                n: '01',
+                title: 'Admin sets policy',
+                body: 'Sign up, configure what to block — emails, IBANs, passwords, national IDs, custom terms. Takes 5 minutes.',
+              },
+              {
+                n: '02',
+                title: 'Team installs extension',
+                body: 'Share an install link. Each team member installs Chrome or Firefox extension in one click. No account required.',
+              },
+              {
+                n: '03',
+                title: 'Extension intercepts PII',
+                body: 'Every prompt is scanned locally before submit. Sensitive items are flagged, blocked, or anonymised automatically.',
+              },
+            ].map(({ n, title, body }) => (
+              <div key={n} className={s.step}>
+                <span className={s.stepN}>{n}</span>
+                <h3 className={s.stepTitle}>{title}</h3>
+                <p className={s.stepBody}>{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Compliance */}
-      <section className={styles.section} id="compliance">
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Built for EU compliance</h2>
-          <div className={styles.complianceGrid}>
-            <div className={styles.complianceItem}>
-              <h4>100% local processing</h4>
-              <p>Sensitive data never leaves the browser. Detection runs entirely on the user&rsquo;s device.</p>
+      {/* ── WHAT WE DETECT ──────────────────────────────────────────── */}
+      <section className={s.section} id="detection">
+        <div className={s.container}>
+          <div className={s.sectionLabel}>[ 03 ] DETECTION</div>
+          <h2 className={s.h2}>Everything that shouldn&rsquo;t reach an AI.</h2>
+          <div className={s.detectGrid}>
+            {[
+              { type: 'EMAIL',       eg: 'alice@company.com',              label: 'Email addresses' },
+              { type: 'PHONE',       eg: '+44 7911 123 456',               label: 'Phone numbers' },
+              { type: 'IBAN',        eg: 'GB33 BUKB 2020 1555 5555 55',    label: 'Bank accounts (IBAN)' },
+              { type: 'CREDIT_CARD', eg: '4111 1111 1111 1111',            label: 'Credit & debit cards' },
+              { type: 'NATIONAL_ID', eg: 'ES 12345678A · NL 123456789',    label: 'National IDs (7 EU countries)' },
+              { type: 'PASSWORD',    eg: 'P@ssw0rd123!',                   label: 'Passwords & secrets' },
+              { type: 'IP_ADDRESS',  eg: '192.168.1.1',                    label: 'IP addresses' },
+              { type: 'VAT',         eg: 'GB 123 456 789',                 label: 'VAT numbers' },
+              { type: 'ADDRESS',     eg: '10 Downing Street, London',      label: 'Physical addresses' },
+              { type: 'API_KEY',     eg: 'sk-proj-xxxxxxxxxxxx',           label: 'API keys & tokens' },
+              { type: 'CUSTOM',      eg: 'Your own terms & phrases',       label: 'Custom terms (admin-defined)' },
+              { type: 'LOCAL',       eg: '100% in browser — nothing sent', label: 'All detection is local' },
+            ].map(({ type, eg, label }) => (
+              <div key={type} className={s.detectCard}>
+                <code className={s.detectType}>{type}</code>
+                <span className={s.detectLabel}>{label}</span>
+                <span className={s.detectEg}>{eg}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOR DEVELOPERS ──────────────────────────────────────────── */}
+      <section className={s.devSection} id="developers">
+        <div className={s.container}>
+          <div className={s.sectionLabel}>[ 04 ] DEVELOPER API</div>
+          <div className={s.devGrid}>
+            <div className={s.devText}>
+              <h2 className={s.h2} style={{ marginBottom: 16 }}>
+                One line.<br />Every prompt scanned.
+              </h2>
+              <p className={s.devSub}>
+                Point your OpenAI client at the PromptFence proxy.
+                Every prompt is scanned before it reaches the model —
+                no SDK to learn, no middleware to write.
+              </p>
+              <ul className={s.devFeatures}>
+                {[
+                  'Scan text, files (PDF, DOCX, XLSX), and prompts',
+                  'Redact PII before sending to any LLM',
+                  'Streaming responses pass through untouched',
+                  'Block logs, webhook events, per-project rules',
+                  'npm SDK · MCP server · CI/CD CLI',
+                ].map(f => (
+                  <li key={f}>
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/developer/docs" className={s.devDocsLink}>
+                Read API docs →
+              </Link>
             </div>
-            <div className={styles.complianceItem}>
-              <h4>GDPR-compliant by design</h4>
-              <p>No personal data is collected, transmitted, or stored. Privacy is architectural, not policy.</p>
-            </div>
-            <div className={styles.complianceItem}>
-              <h4>EU AI Act ready</h4>
-              <p>Demonstrate AI governance controls to regulators. Show that data boundaries exist.</p>
-            </div>
-            <div className={styles.complianceItem}>
-              <h4>Exportable audit trail</h4>
-              <p>Aggregate event logs for SOC2, ISO 27001, and GDPR compliance reviews. No individual surveillance.</p>
-            </div>
-            <div className={styles.complianceItem}>
-              <h4>DPA included</h4>
-              <p>Data Processing Agreement included on Business plans. Ready for procurement.</p>
-            </div>
-            <div className={styles.complianceItem}>
-              <h4>EU-hosted infrastructure</h4>
-              <p>Backend runs in EU data centres. Your metadata stays in Europe.</p>
+            <div className={s.devCode}>
+              <div className={s.codeHeader}>
+                <span className={s.codeLang}>javascript</span>
+                <span className={s.codeFile}>integration.js</span>
+              </div>
+              <pre className={s.codePre}><code>{`import OpenAI from 'openai';
+
+// Before: direct to OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// After: route through PromptFence
+// Change one line — that's it.
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://app.promptfence.ai/api/v1/proxy/openai',
+  defaultHeaders: {
+    'X-PromptFence-Key': process.env.PROMPTFENCE_KEY,
+  },
+});
+
+// Every prompt is now scanned automatically.
+// PII is blocked before it reaches the model.
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: userPrompt }],
+});`}</code></pre>
+              <div className={s.codeFooter}>
+                <span className={s.codeNote}>
+                  Prompt blocked? Returns <code>PROMPTFENCE_BLOCK</code> with detected types.
+                  Your users never know their data was protected.
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className={styles.finalCta}>
-        <div className={styles.container}>
-          <h2>Protect your team in minutes</h2>
-          <p>14-day free trial. No credit card required. Self-serve setup.</p>
-          <div className={styles.heroCtas}>
-            <Link href="/signup" className={styles.btnPrimary}>Start free trial</Link>
-            <a
-              href="https://chromewebstore.google.com/detail/promptfence"
-              target="_blank"
-              rel="noopener"
-              className={styles.btnSecondary}
-            >
+      {/* ── COMPLIANCE ──────────────────────────────────────────────── */}
+      <section className={s.section} id="compliance">
+        <div className={s.container}>
+          <div className={s.sectionLabel}>[ 05 ] COMPLIANCE</div>
+          <h2 className={s.h2}>Built for European regulation.</h2>
+          <p className={s.sectionSub}>
+            PromptFence generates the evidence trail auditors actually ask for —
+            not a checklist, but proof that controls were active and working.
+          </p>
+          <div className={s.complianceGrid}>
+            {[
+              {
+                tag: 'GDPR · Art. 32',
+                title: '100% local processing',
+                body: 'Detection runs in the browser. Sensitive data never leaves the device. Zero data transfer — by architecture, not policy.',
+              },
+              {
+                tag: 'EU AI Act · Art. 4',
+                title: 'AI literacy training',
+                body: 'Progressive in-browser lessons teach employees why data matters as they work. Literacy scores tracked per team member.',
+              },
+              {
+                tag: 'EU AI Act · Art. 12',
+                title: 'Immutable audit log',
+                body: 'Every intercept is logged with timestamp, data type, and action. Export a full compliance report in two clicks.',
+              },
+              {
+                tag: 'EU AI Act · Art. 10',
+                title: 'AI tool inventory',
+                body: 'Auto-discovers every AI tool your team uses. Admin approves, flags, or restricts each one. Documented control.',
+              },
+              {
+                tag: 'SOC 2 / ISO 27001',
+                title: 'No individual surveillance',
+                body: 'Logs are aggregate-only. No per-user content is stored. Audit evidence without monitoring employees.',
+              },
+              {
+                tag: 'Enterprise',
+                title: 'DPA included',
+                body: 'Data Processing Agreement on Business plans. EU-hosted infrastructure. Ready for procurement and legal review.',
+              },
+            ].map(({ tag, title, body }) => (
+              <div key={tag} className={s.compCard}>
+                <span className={s.compTag}>{tag}</span>
+                <h4 className={s.compTitle}>{title}</h4>
+                <p className={s.compBody}>{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING ─────────────────────────────────────────────────── */}
+      <section className={s.sectionAlt} id="pricing">
+        <div className={s.container}>
+          <div className={s.sectionLabel}>[ 06 ] PRICING</div>
+          <h2 className={s.h2}>Simple pricing. No surprises.</h2>
+          <p className={s.sectionSub}>
+            14-day free trial on all plans. No credit card required.
+          </p>
+          <PricingToggle />
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ───────────────────────────────────────────────── */}
+      <section className={s.cta}>
+        <div className={s.ctaInner}>
+          <h2 className={s.ctaH2}>
+            Your team uses AI today.<br />Is your data protected?
+          </h2>
+          <p className={s.ctaSub}>
+            Set up in 5 minutes. No code. No IT ticket. No credit card.
+          </p>
+          <div className={s.heroCtas}>
+            <Link href="/signup" className={s.btnPrimary}>
+              Start free trial
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+            </Link>
+            <a href="https://chromewebstore.google.com/detail/promptfence" target="_blank" rel="noopener" className={s.btnGhost}>
               Install free extension
             </a>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerLeft}>
-            <span className={styles.logo}>PromptFence</span>
-            <span className={styles.footerEu}>Made in the EU</span>
+      {/* ── FOOTER ──────────────────────────────────────────────────── */}
+      <footer className={s.footer}>
+        <div className={s.footerInner}>
+          <div className={s.footerBrand}>
+            <span className={s.footerLogo}>PromptFence</span>
+            <span className={s.footerTagline}>AI data protection · Made in the EU</span>
           </div>
-          <div className={styles.footerLinks}>
-            <a href="https://chromewebstore.google.com/detail/promptfence" target="_blank" rel="noopener">Chrome Web Store</a>
-            <a href="#" target="_blank" rel="noopener">Firefox Add-ons</a>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms</Link>
+          <div className={s.footerLinks}>
+            <a href="https://chromewebstore.google.com/detail/promptfence" target="_blank" rel="noopener">Chrome</a>
+            <a href="#" target="_blank" rel="noopener">Firefox</a>
+            <Link href="/developer/docs">API Docs</Link>
+            <Link href="/privacy">Privacy</Link>
             <a href="mailto:hello@promptfence.ai">Contact</a>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
