@@ -1,0 +1,24 @@
+{
+  "name": "@promptfence/cli",
+  "version": "0.1.0",
+  "description": "PromptFence CLI — scan files for PII in CI/CD pipelines",
+  "bin": {
+    "promptfence": "dist/cli.js",
+    "pf": "dist/cli.js"
+  },
+  "main": "dist/cli.js",
+  "type": "module",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "tsx src/cli.ts"
+  },
+  "keywords": ["cli", "pii", "security", "privacy", "ci", "gdpr", "promptfence"],
+  "author": "PromptFence",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  }
+}

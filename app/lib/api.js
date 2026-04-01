@@ -82,3 +82,28 @@ export function clearAuth() {
   localStorage.removeItem('token');
   localStorage.removeItem('installCode');
 }
+
+/**
+ * Get the raw JWT token from storage.
+ * @returns {string|null}
+ */
+export function getToken() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+}
+
+/**
+ * Simpler authenticated fetch that returns a Response directly.
+ * (Alias for use in developer/API-key protected routes.)
+ */
+export async function authFetch(url, options = {}) {
+  const token = getToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+}

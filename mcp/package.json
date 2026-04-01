@@ -1,0 +1,26 @@
+{
+  "name": "@promptfence/mcp",
+  "version": "0.1.0",
+  "description": "PromptFence MCP server — PII scanning tools for AI agents",
+  "bin": {
+    "promptfence-mcp": "dist/server.js"
+  },
+  "main": "dist/server.js",
+  "type": "module",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts"
+  },
+  "keywords": ["mcp", "ai", "pii", "privacy", "promptfence", "llm-tool"],
+  "author": "PromptFence",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  }
+}

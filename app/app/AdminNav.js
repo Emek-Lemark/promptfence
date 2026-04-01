@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { clearAuth } from '../lib/api';
 
 const navLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/policy', label: 'Policy' },
-  { href: '/team', label: 'Team' },
-  { href: '/events', label: 'Events' },
+  { href: '/dashboard',  label: 'Dashboard' },
+  { href: '/policy',     label: 'Policy' },
+  { href: '/team',       label: 'Team' },
+  { href: '/events',     label: 'Events' },
   { href: '/compliance', label: 'Compliance' },
-  { href: '/billing', label: 'Billing' },
+  { href: '/developer',  label: 'Developer' },
+  { href: '/billing',    label: 'Billing' },
 ];
 
 export default function AdminNav({ active, orgName }) {

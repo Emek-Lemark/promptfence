@@ -214,9 +214,81 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_password_resets_user_id ON password_resets(user_id);
   `);
 
+  // ── Developer product tables ────────────────────────────────────
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS dev_projects (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      rules TEXT NOT NULL DEFAULT '{}',
+      custom_terms TEXT NOT NULL DEFAULT '[]',
+      webhook_url TEXT,
+      webhook_secret TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_dev_projects_org_id ON dev_projects(org_id);
+
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      project_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      key_hash TEXT NOT NULL UNIQUE,
+      env TEXT NOT NULL DEFAULT 'live',
+      rate_limit_per_min INTEGER NOT NULL DEFAULT 60,
+      monthly_limit INTEGER,
+      calls_this_month INTEGER NOT NULL DEFAULT 0,
+      calls_total INTEGER NOT NULL DEFAULT 0,
+      last_used_at TEXT,
+      revoked_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE,
+      FOREIGN KEY (project_id) REFERENCES dev_projects(id) ON DELETE CASCADE,
+      CHECK (env IN ('live', 'test'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash);
+    CREATE INDEX IF NOT EXISTS idx_api_keys_org_id ON api_keys(org_id);
+
+    CREATE TABLE IF NOT EXISTS proxy_logs (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      project_id TEXT NOT NULL,
+      key_id TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      model TEXT,
+      detected_types TEXT NOT NULL DEFAULT '[]',
+      action TEXT NOT NULL,
+      prompt_tokens INTEGER,
+      latency_ms INTEGER,
+      timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE,
+      CHECK (action IN ('ALLOW', 'WARN', 'BLOCK'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_proxy_logs_org_id ON proxy_logs(org_id);
+    CREATE INDEX IF NOT EXISTS idx_proxy_logs_project_id ON proxy_logs(project_id);
+    CREATE INDEX IF NOT EXISTS idx_proxy_logs_timestamp ON proxy_logs(timestamp);
+
+    CREATE TABLE IF NOT EXISTS webhook_deliveries (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      project_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      response_status INTEGER,
+      delivered_at TEXT,
+      failed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_project_id ON webhook_deliveries(project_id);
+  `);
+
   // Migrations — safe to run repeatedly
   const migrations = [
     `ALTER TABLE orgs ADD COLUMN paddle_customer_id TEXT`,
+    `ALTER TABLE api_keys ADD COLUMN key_prefix TEXT NOT NULL DEFAULT ''`,
   ];
   for (const sql of migrations) {
     try { db.exec(sql); } catch { /* column already exists */ }
