@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('@/lib/db');
 const { hashPassword, generateToken, generateInstallCode } = require('@/lib/auth');
 const { checkRateLimit, checkBodySize } = require('@/lib/rateLimit');
+const { sendWelcomeEmail } = require('@/lib/email');
 
 export async function POST(request) {
   try {
@@ -102,6 +103,11 @@ export async function POST(request) {
 
     // Generate token
     const token = generateToken(userId, orgId, 'admin');
+
+    // Send welcome email (fire-and-forget — don't block signup on email failure)
+    sendWelcomeEmail({ email, installCode, orgDomain: domain }).catch(err =>
+      console.error('Welcome email failed:', err)
+    );
 
     return NextResponse.json(
       {
