@@ -1,11 +1,2 @@
-[variables]
-NODE_VERSION = "22"
-
 [phases.setup]
-nixPkgs = ["python3", "gnumake", "gcc"]
-
-[phases.build]
-cmds = ["npm ci", "npm run build"]
-
-[start]
-cmd = "npm run start"
+nixPkgs = ["nodejs_22", "npm-10_x"]
