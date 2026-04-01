@@ -3,25 +3,26 @@
    Design system: dark mode, Inter/Geist, 8px grid
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 .page {
-  --bg:          #0a0a0b;
-  --surface:     #111113;
-  --elevated:    #18181b;
-  --hover:       #1f1f23;
-  --border:      #27272a;
-  --border-mid:  #3f3f46;
+  --bg:          #0c0a14;
+  --surface:     #13101f;
+  --elevated:    #1a1628;
+  --hover:       #221d35;
+  --border:      #2d2645;
+  --border-mid:  #3d3460;
   --text:        #fafafa;
-  --text-2:      #a1a1aa;
-  --text-3:      #71717a;
-  --accent:      #3b82f6;
-  --accent-dim:  rgba(59,130,246,0.12);
+  --text-2:      #a89ec0;
+  --text-3:      #6b608a;
+  --accent:      #7c3aed;
+  --accent-dim:  rgba(124,58,237,0.12);
   --green:       #22c55e;
   --red:         #ef4444;
   --amber:       #f59e0b;
   --radius:      10px;
   --font:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif:       'DM Serif Display', Georgia, 'Times New Roman', serif;
   --mono:        'JetBrains Mono', 'Fira Code', monospace;
 
   background: var(--bg);
@@ -62,10 +63,11 @@
 }
 
 .h2 {
+  font-family: var(--serif);
   font-size: 42px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
   color: var(--text);
   margin: 0 0 20px;
 }
@@ -128,7 +130,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10,10,11,0.88);
+  background: rgba(12,10,20,0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
@@ -255,10 +257,11 @@
 }
 
 .h1 {
-  font-size: 56px;
-  font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-family: var(--serif);
+  font-size: 58px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
   color: var(--text);
   margin: 0 0 24px;
 }
@@ -602,8 +605,9 @@
 }
 
 .stepTitle {
-  font-size: 18px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
   color: var(--text);
   margin: 0 0 10px;
 }
@@ -721,7 +725,7 @@
 .devDocsLink:hover { opacity: 0.75; }
 
 .devCode {
-  background: #0d0d10;
+  background: #080611;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -818,8 +822,9 @@
 }
 
 .compTitle {
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 400;
   color: var(--text);
   margin: 0 0 10px;
 }
@@ -912,7 +917,7 @@
 
 .pricingCardFeatured {
   border-color: var(--accent);
-  background: linear-gradient(180deg, rgba(59,130,246,0.05) 0%, var(--elevated) 100%);
+  background: linear-gradient(180deg, rgba(124,58,237,0.06) 0%, var(--elevated) 100%);
 }
 
 .pricingCardFeatured:hover {
@@ -940,11 +945,11 @@
 }
 
 .pricingCardHeader h3 {
-  font-size: 20px;
-  font-weight: 700;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
   color: var(--text);
   margin: 0 0 4px;
-  letter-spacing: -0.02em;
 }
 
 .pricingCardDesc {
@@ -1057,10 +1062,11 @@
 }
 
 .ctaH2 {
+  font-family: var(--serif);
   font-size: 44px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   color: var(--text);
   margin: 0 0 16px;
 }
@@ -1132,8 +1138,8 @@
     gap: 48px;
   }
 
-  .h1 { font-size: 40px; }
-  .h2 { font-size: 32px; }
+  .h1 { font-size: 42px; }
+  .h2 { font-size: 34px; }
 
   .heroDemo {
     max-width: 480px;
@@ -1166,8 +1172,8 @@
 }
 
 @media (max-width: 600px) {
-  .h1 { font-size: 32px; }
-  .ctaH2 { font-size: 28px; }
+  .h1 { font-size: 36px; }
+  .ctaH2 { font-size: 30px; }
 
   .section, .sectionAlt, .devSection, .cta {
     padding: 64px 0;

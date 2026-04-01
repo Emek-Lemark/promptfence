@@ -168,7 +168,7 @@ export default function DeveloperPage() {
           <code style={{ background: '#e0f2fe', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>
             openai.baseURL = &quot;{process.env.NEXT_PUBLIC_BASE_URL || 'https://app.promptfence.ai'}/api/v1/proxy/openai&quot;
           </code>{' '}
-          — PromptFence scans prompts before they reach OpenAI.
+  PromptFence scans every prompt before it reaches the model.
         </p>
       </div>
 
@@ -211,7 +211,7 @@ export default function DeveloperPage() {
                 <div className="form-group" style={{ margin: 0 }}>
                   <label>Description</label>
                   <input value={newProjectDesc} onChange={e => setNewProjectDesc(e.target.value)}
-                    placeholder="Optional — what does this project do?" />
+                    placeholder="Optional: what does this project do?" />
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={creating} style={{ alignSelf: 'flex-start' }}>
                   {creating ? 'Creating...' : 'Create Project'}
@@ -263,7 +263,7 @@ export default function DeveloperPage() {
                     {revealedKey?.projectId === project.id && (
                       <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, padding: 12, marginBottom: 16 }}>
                         <p style={{ fontSize: 13, fontWeight: 600, color: '#15803d', margin: '0 0 6px' }}>
-                          ✅ API key created — save it now, it won&apos;t be shown again
+                          ✅ API key created. Save it now as it will not be shown again.
                         </p>
                         <code style={{ fontSize: 12, background: '#dcfce7', padding: '6px 10px', borderRadius: 4, display: 'block', wordBreak: 'break-all' }}>
                           {revealedKey.key}

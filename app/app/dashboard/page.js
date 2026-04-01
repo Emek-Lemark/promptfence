@@ -129,7 +129,7 @@ export default function DashboardPage() {
           }}>
             <span style={{ color: trialDaysLeft <= 2 ? '#991b1b' : '#92400e', fontWeight: 500, fontSize: 14 }}>
               {trialDaysLeft === 0
-                ? 'Your trial expires today — upgrade to keep your policy active'
+                ? 'Your trial expires today. Upgrade now to keep your policy active.'
                 : `Your trial ends in ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''}`}
             </span>
             <Link href="/billing" style={{

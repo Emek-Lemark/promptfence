@@ -33,21 +33,33 @@ export default function AdminNav({ active, orgName }) {
       justifyContent: 'space-between',
       padding: '0 24px',
       height: 56,
-      background: '#fff',
-      borderBottom: '1px solid #e2e8f0',
+      background: '#0c0a14',
+      borderBottom: '1px solid #2d2645',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      WebkitFontSmoothing: 'antialiased',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
         <Link href="/dashboard" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
           fontWeight: 700,
-          fontSize: 18,
-          color: '#1e293b',
+          fontSize: 16,
+          color: '#fafafa',
           textDecoration: 'none',
           letterSpacing: '-0.02em',
+          flexShrink: 0,
         }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
+              fill="#7c3aed" opacity="0.15" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
+              fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round"/>
+          </svg>
           PromptFence
         </Link>
 
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', gap: 2 }}>
           {navLinks.map((link) => {
             const isActive = active?.toLowerCase() === link.label.toLowerCase();
             return (
@@ -55,14 +67,15 @@ export default function AdminNav({ active, orgName }) {
                 key={link.href}
                 href={link.href}
                 style={{
-                  padding: '6px 14px',
+                  padding: '5px 12px',
                   borderRadius: 6,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: 500,
-                  color: isActive ? '#1a56db' : '#64748b',
-                  background: isActive ? '#eff6ff' : 'transparent',
+                  color: isActive ? '#c4b5fd' : '#6b608a',
+                  background: isActive ? 'rgba(124,58,237,0.12)' : 'transparent',
                   textDecoration: 'none',
-                  transition: 'background 0.15s, color 0.15s',
+                  transition: 'background 0.12s, color 0.12s',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {link.label}
@@ -74,7 +87,16 @@ export default function AdminNav({ active, orgName }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {orgName && (
-          <span style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>
+          <span style={{
+            fontSize: 12,
+            color: '#6b608a',
+            fontWeight: 500,
+            background: '#1a1628',
+            border: '1px solid #2d2645',
+            borderRadius: 5,
+            padding: '3px 9px',
+            fontFamily: "'JetBrains Mono', monospace",
+          }}>
             {orgName}
           </span>
         )}
@@ -82,12 +104,15 @@ export default function AdminNav({ active, orgName }) {
           href="#"
           onClick={handleLogout}
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 500,
-            color: '#64748b',
+            color: '#6b608a',
             textDecoration: 'none',
             cursor: 'pointer',
+            transition: 'color 0.12s',
           }}
+          onMouseEnter={e => e.target.style.color = '#a89ec0'}
+          onMouseLeave={e => e.target.style.color = '#6b608a'}
         >
           Log out
         </a>

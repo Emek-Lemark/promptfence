@@ -117,7 +117,7 @@ export default function CompliancePage() {
       <div style={s.container}>
         <h1 style={s.h1}>Compliance</h1>
         <p style={{ color: '#64748b', fontSize: 14, marginBottom: 28, marginTop: -12 }}>
-          EU AI Act readiness — Art. 4 (literacy), Art. 10 (governance), Art. 12 (logging), Art. 14 (oversight)
+          EU AI Act readiness: Art. 4 (literacy), Art. 10 (governance), Art. 12 (logging), Art. 14 (oversight)
         </p>
 
         {error && <div style={{ background: '#fef2f2', color: '#dc2626', padding: '12px 16px', borderRadius: 8, marginBottom: 16, fontSize: 14 }}>{error}</div>}
@@ -160,7 +160,7 @@ export default function CompliancePage() {
             <div>
               <h2 style={s.h2}>AI Tool Inventory</h2>
               <p style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>
-                All AI platforms used by your team — approve or flag each one (EU AI Act Art. 10)
+                All AI platforms used by your team. Approve or flag each one to satisfy EU AI Act Art. 10.
               </p>
             </div>
           </div>

@@ -2,24 +2,33 @@
  * app/api/v1/proxy/openai/[...path]/route.js
  *
  * OpenAI-compatible proxy with PII scanning.
+ * Works with ANY OpenAI-compatible provider — not just OpenAI.
  *
- * One-line integration:
+ * One-line integration (OpenAI):
  *   const openai = new OpenAI({
  *     baseURL: 'https://app.promptfence.ai/api/v1/proxy/openai',
  *     defaultHeaders: { 'X-PromptFence-Key': 'pf_live_...' }
  *   });
+ *
+ * Other providers — pass X-Upstream-Base-URL header:
+ *   Grok:     X-Upstream-Base-URL: https://api.x.ai/v1
+ *   Gemini:   X-Upstream-Base-URL: https://generativelanguage.googleapis.com/v1beta/openai
+ *   Mistral:  X-Upstream-Base-URL: https://api.mistral.ai/v1
+ *   Groq:     X-Upstream-Base-URL: https://api.groq.com/openai/v1
+ *   Together: X-Upstream-Base-URL: https://api.together.xyz/v1
  *
  * Flow:
  *   1. Authenticate PromptFence API key
  *   2. Extract text from request body (messages, prompt, input)
  *   3. Scan for PII using project rules
  *   4. If BLOCK → return 400 with explanation (never forwards)
- *   5. If ALLOW/WARN → forward to OpenAI with original Authorization header
+ *   5. If ALLOW/WARN → forward to upstream with original Authorization header
  *   6. Stream response back to client
  *   7. Log metadata (no content stored)
  *
  * Supports: /chat/completions, /completions, /embeddings, /moderations
  * Streaming: yes (passes through chunked responses)
+ * Note: For Anthropic Claude, use /api/v1/proxy/anthropic instead.
  */
 
 'use strict';
@@ -31,6 +40,20 @@ import { getDb } from '../../../../../../lib/db';
 import { randomUUID } from 'crypto';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
+
+// Allowlist of known OpenAI-compatible upstream base URLs
+const ALLOWED_UPSTREAM_HOSTS = new Set([
+  'api.openai.com',
+  'api.x.ai',                              // Grok
+  'generativelanguage.googleapis.com',     // Gemini
+  'api.mistral.ai',                        // Mistral
+  'api.groq.com',                          // Groq
+  'api.together.xyz',                      // Together AI
+  'api.cohere.com',                        // Cohere
+  'api.perplexity.ai',                     // Perplexity
+  'api.deepseek.com',                      // DeepSeek
+  'openrouter.ai',                         // OpenRouter
+]);
 
 // Extract text content from OpenAI request body for scanning
 function extractTextFromBody(body) {
@@ -68,14 +91,34 @@ async function handler(request, { params }) {
   if (auth.error) return NextResponse.json(auth.error, { status: auth.status });
   const { key, project, orgId } = auth;
 
-  // 2. Get the downstream OpenAI API key from Authorization header
-  //    Client must pass: Authorization: Bearer sk-... (their OpenAI key)
+  // 2. Resolve upstream base URL
+  //    Default: OpenAI. Override with X-Upstream-Base-URL for other OpenAI-compatible providers.
+  let upstreamBase = OPENAI_BASE;
+  const customUpstream = request.headers.get('x-upstream-base-url');
+  if (customUpstream) {
+    let parsedHost;
+    try {
+      parsedHost = new URL(customUpstream).hostname;
+    } catch {
+      return NextResponse.json({ code: 'INVALID_UPSTREAM', message: 'X-Upstream-Base-URL is not a valid URL' }, { status: 400 });
+    }
+    if (!ALLOWED_UPSTREAM_HOSTS.has(parsedHost)) {
+      return NextResponse.json({
+        code: 'UPSTREAM_NOT_ALLOWED',
+        message: `Upstream host '${parsedHost}' is not in the allowlist. Contact support to add it.`,
+      }, { status: 400 });
+    }
+    upstreamBase = customUpstream.replace(/\/$/, '');
+  }
+
+  // 3. Get the downstream API key from Authorization header
+  //    Client must pass: Authorization: Bearer <provider-api-key>
   //    AND X-PromptFence-Key: pf_live_... (PromptFence key)
-  const openAiAuth = request.headers.get('authorization') || '';
-  if (!openAiAuth.startsWith('Bearer sk-') && !openAiAuth.startsWith('Bearer org-')) {
+  const upstreamAuth = request.headers.get('authorization') || '';
+  if (!upstreamAuth.startsWith('Bearer ')) {
     return NextResponse.json({
-      code: 'MISSING_OPENAI_KEY',
-      message: 'Pass your OpenAI API key via Authorization: Bearer sk-... header',
+      code: 'MISSING_UPSTREAM_KEY',
+      message: 'Pass your upstream provider API key via Authorization: Bearer <key> header',
     }, { status: 400 });
   }
 
@@ -117,9 +160,10 @@ async function handler(request, { params }) {
     const db = getDb();
     db.prepare(`
       INSERT INTO proxy_logs (id, org_id, project_id, key_id, provider, model, detected_types, action, prompt_tokens, latency_ms, timestamp)
-      VALUES (?, ?, ?, ?, 'openai', ?, ?, 'BLOCK', ?, ?, datetime('now'))
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'BLOCK', ?, ?, datetime('now'))
     `).run(
       randomUUID(), orgId, project.id, key.id,
+      customUpstream ? new URL(upstreamBase).hostname.split('.')[1] || 'custom' : 'openai',
       body?.model || null,
       JSON.stringify(scanResult.detectedTypes),
       Math.ceil(textScanned.length / 4),
@@ -144,18 +188,18 @@ async function handler(request, { params }) {
     }, { status: 400 });
   }
 
-  // 6. Forward to OpenAI
+  // 6. Forward to upstream provider
   const pathSegments = params.path || [];
   const upstreamPath = pathSegments.join('/');
-  const upstreamUrl = `${OPENAI_BASE}/${upstreamPath}`;
+  const upstreamUrl = `${upstreamBase}/${upstreamPath}`;
 
   // Build forwarding headers — strip PromptFence-specific ones
   const forwardHeaders = new Headers();
-  forwardHeaders.set('authorization', openAiAuth);
+  forwardHeaders.set('authorization', upstreamAuth);
   forwardHeaders.set('content-type', 'application/json');
 
-  // Forward any OpenAI-specific headers
-  const passthroughHeaders = ['openai-organization', 'openai-project', 'x-request-id'];
+  // Forward provider-specific headers
+  const passthroughHeaders = ['openai-organization', 'openai-project', 'x-request-id', 'anthropic-version'];
   for (const h of passthroughHeaders) {
     const v = request.headers.get(h);
     if (v) forwardHeaders.set(h, v);
@@ -169,7 +213,7 @@ async function handler(request, { params }) {
       body: body ? JSON.stringify(body) : null,
     });
   } catch (err) {
-    return NextResponse.json({ code: 'UPSTREAM_ERROR', message: 'Failed to reach OpenAI API' }, { status: 502 });
+    return NextResponse.json({ code: 'UPSTREAM_ERROR', message: `Failed to reach upstream provider at ${upstreamBase}` }, { status: 502 });
   }
 
   const latencyMs = Date.now() - startMs;
@@ -179,9 +223,10 @@ async function handler(request, { params }) {
     const db = getDb();
     db.prepare(`
       INSERT INTO proxy_logs (id, org_id, project_id, key_id, provider, model, detected_types, action, prompt_tokens, latency_ms, timestamp)
-      VALUES (?, ?, ?, ?, 'openai', ?, ?, ?, ?, ?, datetime('now'))
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).run(
       randomUUID(), orgId, project.id, key.id,
+      customUpstream ? new URL(upstreamBase).hostname.split('.')[1] || 'custom' : 'openai',
       body?.model || null,
       JSON.stringify(scanResult.detectedTypes),
       scanResult.action,

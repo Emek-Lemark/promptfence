@@ -304,7 +304,7 @@ export default function SetupPage() {
           ))}
         </div>
         <p style={s.stepLabel}>
-          Step {step} of 4 — <span style={s.stepLabelStrong}>{STEP_TITLES[step - 1]}</span>
+          Step {step} of 4: <span style={s.stepLabelStrong}>{STEP_TITLES[step - 1]}</span>
         </p>
       </div>
     );

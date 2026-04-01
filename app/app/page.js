@@ -12,10 +12,10 @@ export default function Home() {
           <Link href="/" className={s.navLogo}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
-                fill="#3b82f6" opacity="0.15" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round"/>
+                fill="#7c3aed" opacity="0.15" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round"/>
               <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"
-                fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round"/>
-              <line x1="12" y1="2" x2="12" y2="22" stroke="#3b82f6" strokeWidth="1" opacity="0.4"/>
+                fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round"/>
+              <line x1="12" y1="2" x2="12" y2="22" stroke="#7c3aed" strokeWidth="1" opacity="0.4"/>
             </svg>
             <span>PromptFence</span>
           </Link>
@@ -41,14 +41,15 @@ export default function Home() {
               AI Data Protection
             </div>
             <h1 className={s.h1}>
-              Your team is pasting<br />
-              client data into<br />
-              <span className={s.h1Accent}>ChatGPT.</span>
+              Your team ships AI<br />
+              with no guardrails<br />
+              <span className={s.h1Accent}>and no proof.</span>
             </h1>
             <p className={s.heroSub}>
-              PromptFence catches emails, IBANs, passwords, and national IDs
-              before they reach any AI tool — in real time, in the browser,
-              with nothing sent anywhere.
+              PromptFence protects the data your team pastes into AI tools
+              and gives developers an API to enforce those same rules inside
+              their products, complete with an audit trail you can show
+              customers and auditors.
             </p>
             <div className={s.heroCtas}>
               <Link href="/signup" className={s.btnPrimary}>
@@ -95,7 +96,7 @@ export default function Home() {
                     <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
                     </svg>
-                    Blocked — 2 items detected
+                    Blocked: 2 items detected
                   </div>
                   <div className={s.demoMatches}>
                     <div className={s.demoMatch}>
@@ -129,7 +130,7 @@ export default function Home() {
         <div className={s.container}>
           <p className={s.platformsLabel}>Scans everything your team types into</p>
           <div className={s.platformList}>
-            {['ChatGPT', 'Claude', 'Gemini', 'Copilot', 'Perplexity', 'Slack', 'Notion', 'Gmail', 'Linear', 'Outlook'].map(p => (
+            {['ChatGPT', 'Claude', 'Gemini', 'Grok', 'Copilot', 'Perplexity', 'Mistral', 'Slack', 'Notion', 'Gmail', 'Outlook'].map(p => (
               <span key={p} className={s.platformItem}>{p}</span>
             ))}
           </div>
@@ -145,13 +146,14 @@ export default function Home() {
           </h2>
           <p className={s.sectionSub}>
             Most teams have no visibility into what their employees paste into ChatGPT, Claude, or Gemini.
-            One careless prompt can expose client data, trigger a GDPR fine, or fail a compliance audit.
+            They also have no way to prove their AI products handled customer data responsibly.
+            One careless prompt can expose client data, trigger a GDPR fine, or lose a deal.
           </p>
           <div className={s.statsGrid}>
             {[
               { n: '68%', label: 'of employees admit to pasting sensitive data into AI tools without thinking twice' },
-              { n: '€4.2M', label: 'average cost of a GDPR fine. AI data leaks are the newest vector.' },
-              { n: '2025', label: 'EU AI Act enforcement begins. Auditors are asking for proof of AI governance controls.' },
+              { n: '€4.2M', label: 'average cost of a GDPR fine. AI data leaks are the fastest-growing vector.' },
+              { n: '2026', label: 'EU AI Act enforcement is live. Auditors and enterprise buyers are asking for proof of AI governance controls.' },
             ].map(({ n, label }) => (
               <div key={n} className={s.statCard}>
                 <span className={s.statNum}>{n}</span>
@@ -172,12 +174,12 @@ export default function Home() {
               {
                 n: '01',
                 title: 'Admin sets policy',
-                body: 'Sign up, configure what to block — emails, IBANs, passwords, national IDs, custom terms. Takes 5 minutes.',
+                body: 'Sign up and configure what to block: emails, IBANs, passwords, national IDs, and custom terms. Takes five minutes.',
               },
               {
                 n: '02',
                 title: 'Team installs extension',
-                body: 'Share an install link. Each team member installs Chrome or Firefox extension in one click. No account required.',
+                body: 'Invite team members by email or share an install link. Each person installs the Chrome or Firefox extension in one click. No account required.',
               },
               {
                 n: '03',
@@ -213,7 +215,7 @@ export default function Home() {
               { type: 'ADDRESS',     eg: '10 Downing Street, London',      label: 'Physical addresses' },
               { type: 'API_KEY',     eg: 'sk-proj-xxxxxxxxxxxx',           label: 'API keys & tokens' },
               { type: 'CUSTOM',      eg: 'Your own terms & phrases',       label: 'Custom terms (admin-defined)' },
-              { type: 'LOCAL',       eg: '100% in browser — nothing sent', label: 'All detection is local' },
+              { type: 'LOCAL',       eg: '100% in browser. Nothing sent.',  label: 'All detection is local' },
             ].map(({ type, eg, label }) => (
               <div key={type} className={s.detectCard}>
                 <code className={s.detectType}>{type}</code>
@@ -232,19 +234,22 @@ export default function Home() {
           <div className={s.devGrid}>
             <div className={s.devText}>
               <h2 className={s.h2} style={{ marginBottom: 16 }}>
-                One line.<br />Every prompt scanned.
+                Shipping AI with<br />no guardrails is<br />
+                <span className={s.h1Accent}>a liability.</span>
               </h2>
               <p className={s.devSub}>
-                Point your OpenAI client at the PromptFence proxy.
-                Every prompt is scanned before it reaches the model —
-                no SDK to learn, no middleware to write.
+                Every product built on LLMs handles sensitive user data.
+                Without a scanning layer you have no policy enforcement,
+                no audit trail, and nothing to show enterprise customers
+                when they ask how you protect their data. One URL change fixes that.
               </p>
               <ul className={s.devFeatures}>
                 {[
-                  'Scan text, files (PDF, DOCX, XLSX), and prompts',
-                  'Redact PII before sending to any LLM',
-                  'Streaming responses pass through untouched',
-                  'Block logs, webhook events, per-project rules',
+                  'OpenAI-compatible proxy. One line to integrate.',
+                  'Scan text, files (PDF, DOCX, XLSX), and prompts via REST',
+                  'Redact PII before it reaches any model',
+                  'Block logs + webhook events per project',
+                  'Export compliance evidence for customer security reviews',
                   'npm SDK · MCP server · CI/CD CLI',
                 ].map(f => (
                   <li key={f}>
@@ -264,15 +269,9 @@ export default function Home() {
                 <span className={s.codeLang}>javascript</span>
                 <span className={s.codeFile}>integration.js</span>
               </div>
-              <pre className={s.codePre}><code>{`import OpenAI from 'openai';
+              <pre className={s.codePre}><code>{`// Works with OpenAI, Grok, Gemini, Mistral, Groq…
+import OpenAI from 'openai';
 
-// Before: direct to OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// After: route through PromptFence
-// Change one line — that's it.
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   baseURL: 'https://app.promptfence.ai/api/v1/proxy/openai',
@@ -281,16 +280,22 @@ const openai = new OpenAI({
   },
 });
 
-// Every prompt is now scanned automatically.
-// PII is blocked before it reaches the model.
+// Grok, Gemini, Mistral? Same proxy, one extra header:
+// 'X-Upstream-Base-URL': 'https://api.x.ai/v1'
+
+// Claude has its own endpoint:
+// baseURL: '.../api/v1/proxy/anthropic'
+
+// Every prompt is scanned before it reaches the model.
+// PII is blocked. Your users are protected.
 const response = await openai.chat.completions.create({
   model: 'gpt-4o',
   messages: [{ role: 'user', content: userPrompt }],
 });`}</code></pre>
               <div className={s.codeFooter}>
                 <span className={s.codeNote}>
-                  Prompt blocked? Returns <code>PROMPTFENCE_BLOCK</code> with detected types.
-                  Your users never know their data was protected.
+                  Works with OpenAI, Grok, Gemini, Mistral, Groq and Claude.
+                  Blocked prompts return <code>PROMPTFENCE_BLOCK</code> and never reach the model.
                 </span>
               </div>
             </div>
@@ -302,17 +307,18 @@ const response = await openai.chat.completions.create({
       <section className={s.section} id="compliance">
         <div className={s.container}>
           <div className={s.sectionLabel}>[ 05 ] COMPLIANCE</div>
-          <h2 className={s.h2}>Built for European regulation.</h2>
+          <h2 className={s.h2}>Prove it to auditors.<br />Prove it to customers.</h2>
           <p className={s.sectionSub}>
-            PromptFence generates the evidence trail auditors actually ask for —
-            not a checklist, but proof that controls were active and working.
+            Enterprise buyers ask how you handle their data in AI systems.
+            PromptFence generates the evidence trail that answers that question.
+            Not a checkbox, but actual proof that your controls were active and working.
           </p>
           <div className={s.complianceGrid}>
             {[
               {
                 tag: 'GDPR · Art. 32',
                 title: '100% local processing',
-                body: 'Detection runs in the browser. Sensitive data never leaves the device. Zero data transfer — by architecture, not policy.',
+                body: 'Detection runs in the browser. Sensitive data never leaves the device. Zero data transfer, built into the architecture rather than a policy you hope people follow.',
               },
               {
                 tag: 'EU AI Act · Art. 4',
@@ -366,7 +372,7 @@ const response = await openai.chat.completions.create({
       <section className={s.cta}>
         <div className={s.ctaInner}>
           <h2 className={s.ctaH2}>
-            Your team uses AI today.<br />Is your data protected?
+            Start protecting your data.<br />Start proving it.
           </h2>
           <p className={s.ctaSub}>
             Set up in 5 minutes. No code. No IT ticket. No credit card.

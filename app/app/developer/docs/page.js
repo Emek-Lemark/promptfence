@@ -235,16 +235,36 @@ Authorization: Bearer pf_live_xxxx...`}</Code>
 
         {/* ── QUICK START ─── */}
         <H2 id="quickstart">Quick Start</H2>
-        <p>Three ways to integrate — pick the one that fits your stack:</p>
+        <p>Three ways to integrate. Pick the one that fits your stack:</p>
 
-        <H3>Option 1 — OpenAI proxy (fastest)</H3>
+        <H3>Option 1 — LLM proxy (fastest)</H3>
+        <p style={{marginBottom:12}}>Works with OpenAI, Grok, Gemini, Mistral, Groq, and any OpenAI-compatible API. For Claude, see the <a href="#proxy-anthropic">Anthropic proxy</a>.</p>
         <Code lang="js">{`import OpenAI from 'openai';
 
+// OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   baseURL: '${BASE}/api/v1/proxy/openai',
+  defaultHeaders: { 'X-PromptFence-Key': process.env.PROMPTFENCE_API_KEY },
+});
+
+// Grok (xAI) — same proxy, different upstream
+const grok = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: '${BASE}/api/v1/proxy/openai',
   defaultHeaders: {
     'X-PromptFence-Key': process.env.PROMPTFENCE_API_KEY,
+    'X-Upstream-Base-URL': 'https://api.x.ai/v1',
+  },
+});
+
+// Gemini (OpenAI-compatible mode)
+const gemini = new OpenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: '${BASE}/api/v1/proxy/openai',
+  defaultHeaders: {
+    'X-PromptFence-Key': process.env.PROMPTFENCE_API_KEY,
+    'X-Upstream-Base-URL': 'https://generativelanguage.googleapis.com/v1beta/openai',
   },
 });
 
@@ -283,28 +303,53 @@ const response = await openai.chat.completions.create({ ... });`}</Code>
 }`}</Code>
 
         {/* ── PROXY ─── */}
-        <H2 id="proxy">OpenAI-Compatible Proxy</H2>
+        <H2 id="proxy">LLM Proxy</H2>
         <p>
-          The proxy is a drop-in replacement for <code>api.openai.com/v1</code>. It scans every request before forwarding,
-          and streams the response back transparently. Supports streaming (<code>stream: true</code>), all models, and all endpoints.
+          The proxy sits between your code and any LLM API. Every request is scanned before forwarding.
+          Streaming, all models, and all endpoints are supported. Responses pass through transparently.
         </p>
 
-        <Endpoint method="*" path="/api/v1/proxy/openai/{path}" desc="Forward to OpenAI with PII scanning" />
+        <H3 id="proxy-openai">OpenAI-compatible providers</H3>
+        <p style={{marginBottom:12}}>One endpoint works for OpenAI, Grok, Gemini, Mistral, Groq, Together AI, Perplexity, DeepSeek, and OpenRouter.</p>
+
+        <Endpoint method="*" path="/api/v1/proxy/openai/{path}" desc="Forward to any OpenAI-compatible provider with PII scanning" />
 
         <H3>Headers</H3>
         <ParamTable>
           <Param name="X-PromptFence-Key" type="string" required desc="Your PromptFence API key" />
-          <Param name="Authorization" type="string" required desc="Bearer sk-... — your OpenAI API key, forwarded upstream" />
+          <Param name="Authorization" type="string" required desc="Bearer <provider-key> — forwarded upstream" />
+          <Param name="X-Upstream-Base-URL" type="string" required={false} desc="Override upstream base URL. Defaults to api.openai.com/v1. Use for Grok, Gemini, Mistral, etc." />
         </ParamTable>
 
-        <H3>Response headers added</H3>
+        <H3 id="proxy-anthropic">Anthropic Claude</H3>
+        <p style={{marginBottom:12}}>Claude uses a different API format. Use the dedicated Anthropic proxy:</p>
+
+        <Endpoint method="*" path="/api/v1/proxy/anthropic/{path}" desc="Forward to Anthropic Claude with PII scanning" />
+
+        <Code lang="js">{`import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  baseURL: '${BASE}/api/v1/proxy/anthropic',
+  defaultHeaders: {
+    'X-PromptFence-Key': process.env.PROMPTFENCE_API_KEY,
+  },
+});
+
+const message = await client.messages.create({
+  model: 'claude-opus-4-5',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: userMessage }],
+});`}</Code>
+
+        <H3>Response headers added (all providers)</H3>
         <ParamTable>
           <Param name="X-PromptFence-Action" type="string" required={false} desc="ALLOW, WARN, or BLOCK" />
           <Param name="X-PromptFence-Detected" type="string" required={false} desc="Comma-separated detected types, e.g. EMAIL,IBAN" />
         </ParamTable>
 
         <H3>When a request is blocked</H3>
-        <p>The proxy returns <code>400</code> and never contacts OpenAI:</p>
+        <p>The proxy returns <code>400</code> and never contacts the upstream provider:</p>
         <Code lang="json">{`{
   "error": {
     "code": "PROMPTFENCE_BLOCK",
@@ -314,7 +359,7 @@ const response = await openai.chat.completions.create({ ... });`}</Code>
 }`}</Code>
 
         <H3>Streaming</H3>
-        <p>Streaming responses (<code>stream: true</code>) pass through chunk by chunk with no buffering. The scan happens on the <em>request</em> body before forwarding — the response is never scanned.</p>
+        <p>Streaming responses (<code>stream: true</code>) pass through chunk by chunk with no buffering. The scan happens on the <em>request</em> body before forwarding. The response is never scanned.</p>
 
         <Code lang="js">{`// Streaming works exactly as normal
 const stream = await openai.chat.completions.create({
@@ -458,7 +503,7 @@ console.log(result.detectedTypes); // ['EMAIL', 'PHONE', 'NATIONAL_ID']`}</Code>
         <Endpoint method="GET" path="/api/v1/logs" desc="Retrieve proxy and scan logs with aggregate stats" />
 
         <Callout type="info">
-          Logs contain only metadata — action, detected types, token count, latency. <strong>No prompt content is ever stored.</strong>
+          Logs contain only metadata: action, detected types, token count, and latency. <strong>No prompt content is ever stored.</strong>
         </Callout>
 
         <H3>Query parameters</H3>

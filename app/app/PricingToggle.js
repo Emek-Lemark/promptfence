@@ -29,7 +29,7 @@ export default function PricingToggle() {
         <div className={styles.pricingCard}>
           <div className={styles.pricingCardHeader}>
             <h3>Personal</h3>
-            <p className={styles.pricingCardDesc}>For individual use — free forever</p>
+            <p className={styles.pricingCardDesc}>For individual use, free forever</p>
           </div>
           <div className={styles.pricingCardPrice}>
             <span className={styles.pricingAmount}>€0</span>
@@ -40,7 +40,7 @@ export default function PricingToggle() {
             <li>All detection types (email, IBAN, passwords…)</li>
             <li>5 presets (Personal, Finance, Health, Work, Dev)</li>
             <li>One-click anonymisation</li>
-            <li>100% local — nothing sent anywhere</li>
+            <li>100% local. Nothing sent anywhere</li>
           </ul>
           <a
             href="https://chromewebstore.google.com/detail/promptfence"
