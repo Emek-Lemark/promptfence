@@ -41,15 +41,16 @@ export default function Home() {
               AI Data Protection
             </div>
             <h1 className={s.h1}>
-              Your team ships AI<br />
-              with no guardrails<br />
-              <span className={s.h1Accent}>and no proof.</span>
+              Protect sensitive<br />
+              customer data<br />
+              <span className={s.h1Accent}>from AI tools.</span>
             </h1>
             <p className={s.heroSub}>
-              PromptFence protects the data your team pastes into AI tools
-              and gives developers an API to enforce those same rules inside
-              their products, complete with an audit trail you can show
-              customers and auditors.
+              Your team is pasting emails, bank details and passwords into
+              ChatGPT every day without thinking twice. PromptFence catches
+              it in real time, before it leaves the browser, and gives
+              developers an API to enforce the same protection inside their
+              own AI products.
             </p>
             <div className={s.heroCtas}>
               <Link href="/signup" className={s.btnPrimary}>
