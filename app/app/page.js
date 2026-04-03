@@ -23,7 +23,6 @@ export default function Home() {
             <a href="#how-it-works">How it works</a>
             <a href="#pricing">Pricing</a>
             <a href="#compliance">Compliance</a>
-            <a href="#developers">Developers</a>
           </div>
           <div className={s.navActions}>
             <Link href="/login" className={s.navLogin}>Log in</Link>
@@ -48,9 +47,8 @@ export default function Home() {
             <p className={s.heroSub}>
               Your team is pasting emails, bank details and passwords into
               ChatGPT every day without thinking twice. PromptFence catches
-              it in real time, before it leaves the browser, and gives
-              developers an API to enforce the same protection inside their
-              own AI products.
+              it in real time, before it leaves the browser, and gives you
+              a full audit trail to prove it to auditors and enterprise buyers.
             </p>
             <div className={s.heroCtas}>
               <Link href="/signup" className={s.btnPrimary}>
@@ -228,86 +226,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FOR DEVELOPERS ──────────────────────────────────────────── */}
-      <section className={s.devSection} id="developers">
-        <div className={s.container}>
-          <div className={s.sectionLabel}>[ 04 ] DEVELOPER API</div>
-          <div className={s.devGrid}>
-            <div className={s.devText}>
-              <h2 className={s.h2} style={{ marginBottom: 16 }}>
-                Shipping AI with<br />no guardrails is<br />
-                <span className={s.h1Accent}>a liability.</span>
-              </h2>
-              <p className={s.devSub}>
-                Every product built on LLMs handles sensitive user data.
-                Without a scanning layer you have no policy enforcement,
-                no audit trail, and nothing to show enterprise customers
-                when they ask how you protect their data. One URL change fixes that.
-              </p>
-              <ul className={s.devFeatures}>
-                {[
-                  'OpenAI-compatible proxy. One line to integrate.',
-                  'Scan text, files (PDF, DOCX, XLSX), and prompts via REST',
-                  'Redact PII before it reaches any model',
-                  'Block logs + webhook events per project',
-                  'Export compliance evidence for customer security reviews',
-                  'npm SDK · MCP server · CI/CD CLI',
-                ].map(f => (
-                  <li key={f}>
-                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/developer/docs" className={s.devDocsLink}>
-                Read API docs →
-              </Link>
-            </div>
-            <div className={s.devCode}>
-              <div className={s.codeHeader}>
-                <span className={s.codeLang}>javascript</span>
-                <span className={s.codeFile}>integration.js</span>
-              </div>
-              <pre className={s.codePre}><code>{`// Works with OpenAI, Grok, Gemini, Mistral, Groq…
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: 'https://app.promptfence.ai/api/v1/proxy/openai',
-  defaultHeaders: {
-    'X-PromptFence-Key': process.env.PROMPTFENCE_KEY,
-  },
-});
-
-// Grok, Gemini, Mistral? Same proxy, one extra header:
-// 'X-Upstream-Base-URL': 'https://api.x.ai/v1'
-
-// Claude has its own endpoint:
-// baseURL: '.../api/v1/proxy/anthropic'
-
-// Every prompt is scanned before it reaches the model.
-// PII is blocked. Your users are protected.
-const response = await openai.chat.completions.create({
-  model: 'gpt-4o',
-  messages: [{ role: 'user', content: userPrompt }],
-});`}</code></pre>
-              <div className={s.codeFooter}>
-                <span className={s.codeNote}>
-                  Works with OpenAI, Grok, Gemini, Mistral, Groq and Claude.
-                  Blocked prompts return <code>PROMPTFENCE_BLOCK</code> and never reach the model.
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── COMPLIANCE ──────────────────────────────────────────────── */}
       <section className={s.section} id="compliance">
         <div className={s.container}>
-          <div className={s.sectionLabel}>[ 05 ] COMPLIANCE</div>
+          <div className={s.sectionLabel}>[ 04 ] COMPLIANCE</div>
           <h2 className={s.h2}>Prove it to auditors.<br />Prove it to customers.</h2>
           <p className={s.sectionSub}>
             Enterprise buyers ask how you handle their data in AI systems.
@@ -360,7 +282,7 @@ const response = await openai.chat.completions.create({
       {/* ── PRICING ─────────────────────────────────────────────────── */}
       <section className={s.sectionAlt} id="pricing">
         <div className={s.container}>
-          <div className={s.sectionLabel}>[ 06 ] PRICING</div>
+          <div className={s.sectionLabel}>[ 05 ] PRICING</div>
           <h2 className={s.h2}>Simple pricing. No surprises.</h2>
           <p className={s.sectionSub}>
             14-day free trial on all plans. No credit card required.

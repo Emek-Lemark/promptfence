@@ -106,13 +106,13 @@ export default function PricingToggle() {
           </p>
           <ul className={styles.pricingFeatures}>
             <li>Everything in Team</li>
-            <li>Developer API + LLM proxy</li>
-            <li>Anthropic, OpenAI, Gemini, Groq support</li>
-            <li>Webhook events</li>
+            <li>Unlimited seats</li>
             <li>Priority support</li>
             <li>DPA included</li>
             <li>Custom detection rules</li>
+            <li>Webhook events</li>
             <li>Weekly digest emails</li>
+            <li>Dedicated onboarding</li>
           </ul>
           <Link href="/signup" className={`${styles.pricingBtn} ${styles.pricingBtnPrimary}`}>
             Start free 14-day trial
