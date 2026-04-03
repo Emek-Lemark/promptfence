@@ -491,7 +491,13 @@
       color: var(--pf-text);
     }
 
-    .pf-close {
+    .pf-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .pf-close, .pf-gear {
       background: none;
       border: none;
       padding: 6px;
@@ -503,7 +509,7 @@
       justify-content: center;
     }
 
-    .pf-close:hover {
+    .pf-close:hover, .pf-gear:hover {
       background: var(--pf-surface);
       color: var(--pf-text);
     }
@@ -511,6 +517,11 @@
     .pf-close svg {
       width: 18px;
       height: 18px;
+    }
+
+    .pf-gear svg {
+      width: 15px;
+      height: 15px;
     }
 
     .pf-body {
@@ -759,6 +770,7 @@
     warn: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>',
     block: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>',
     close: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/></svg>',
+    gear: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.34 1.804A1 1 0 019.32 1h1.36a1 1 0 01.98.804l.18 1.052a6.012 6.012 0 011.442.83l1.01-.388a1 1 0 011.197.447l.68 1.178a1 1 0 01-.247 1.284l-.838.665a6.073 6.073 0 010 1.656l.838.665a1 1 0 01.247 1.284l-.68 1.178a1 1 0 01-1.197.447l-1.01-.388a6.012 6.012 0 01-1.442.83l-.18 1.052A1 1 0 0110.68 15H9.32a1 1 0 01-.98-.804l-.18-1.052a6.012 6.012 0 01-1.442-.83l-1.01.388a1 1 0 01-1.197-.447l-.68-1.178a1 1 0 01.247-1.284l.838-.665a6.073 6.073 0 010-1.656l-.838-.665a1 1 0 01-.247-1.284l.68-1.178a1 1 0 011.197-.447l1.01.388a6.012 6.012 0 011.442-.83l.18-1.052zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>',
     shield: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a.75.75 0 01.596.3l6 8a.75.75 0 01-.596 1.2H4a.75.75 0 01-.596-1.2l6-8A.75.75 0 0110 1zM4.5 13a.75.75 0 01.75-.75h9.5a.75.75 0 010 1.5h-9.5a.75.75 0 01-.75-.75zm2 3a.75.75 0 01.75-.75h5.5a.75.75 0 010 1.5h-5.5a.75.75 0 01-.75-.75z" clip-rule="evenodd"/></svg>'
   };
 
@@ -1344,7 +1356,10 @@
           <span class="pf-icon">${ICONS[iconKey]}</span>
           <span class="pf-title">${modalCopy.title}</span>
         </div>
-        ${!isBlock ? `<button class="pf-close" data-action="close" aria-label="Close">${ICONS.close}</button>` : ''}
+        <div class="pf-header-actions">
+          ${!isTeamMode() ? `<button class="pf-gear" data-action="settings" aria-label="Settings">${ICONS.gear}</button>` : ''}
+          ${!isBlock ? `<button class="pf-close" data-action="close" aria-label="Close">${ICONS.close}</button>` : ''}
+        </div>
       </div>
       <div class="pf-body">
         <div class="pf-subtitle">${modalCopy.body}</div>
@@ -1354,11 +1369,7 @@
           ${actionsHtml}
         </div>
       </div>
-      <div class="pf-footer">
-        ${isTeamMode() && localConfig.orgName
-          ? `<span class="pf-org-label">Policy set by ${localConfig.orgName}</span>`
-          : `<button class="pf-link" data-action="settings">Settings</button>`}
-      </div>
+      ${isTeamMode() && localConfig.orgName ? `<div class="pf-footer"><span class="pf-org-label">Policy set by ${localConfig.orgName}</span></div>` : ''}
     `;
 
     root.appendChild(modal);
@@ -1387,8 +1398,7 @@
           console.error('[PromptFence] Anonymize error:', e);
         }
       }
-      // Show friendly micro-lesson instead of abruptly closing
-      showMicroLesson(modal, detectedTypes);
+      closeModalSafely();
     });
 
     if (cancelBtn) {
@@ -1400,17 +1410,24 @@
     if (allowBtn) {
       allowBtn.addEventListener('click', function() {
         try {
-          // For WARN: insert original text
-          insertTextIntoTarget(pendingTarget, pendingText);
+          if (pendingSource === 'submit') {
+            // Text is already in the field — just send it
+            closeModalSafely();
+            triggerNativeSend();
+          } else {
+            // Paste source — text was intercepted, insert it now
+            insertTextIntoTarget(pendingTarget, pendingText);
+            closeModalSafely();
+          }
           if (debugMode) {
-            console.log('[PromptFence] Allowed once');
+            console.log('[PromptFence] Allowed once (source:', pendingSource, ')');
           }
         } catch (e) {
           if (debugMode) {
             console.error('[PromptFence] Allow error:', e);
           }
+          closeModalSafely();
         }
-        closeModalSafely();
       });
     }
 
