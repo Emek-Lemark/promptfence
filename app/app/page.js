@@ -37,18 +37,18 @@ export default function Home() {
           <div className={s.heroText}>
             <div className={s.eyebrow}>
               <span className={s.eyebrowDot} />
-              AI Data Protection
+              AI Policy Enforcement
             </div>
             <h1 className={s.h1}>
-              Protect sensitive<br />
-              customer data<br />
-              <span className={s.h1Accent}>from AI tools.</span>
+              Give your team<br />
+              clear AI rules.<br />
+              <span className={s.h1Accent}>Enforced automatically.</span>
             </h1>
             <p className={s.heroSub}>
-              Your team is pasting emails, bank details and passwords into
-              ChatGPT every day without thinking twice. PromptFence catches
-              it in real time, before it leaves the browser, and gives you
-              a full audit trail to prove it to auditors and enterprise buyers.
+              Your team is pasting client emails, bank details and internal
+              passwords into ChatGPT without a second thought. PromptFence
+              blocks it before it leaves the browser — and keeps a record
+              you can show clients and regulators.
             </p>
             <div className={s.heroCtas}>
               <Link href="/signup" className={s.btnPrimary}>
@@ -150,9 +150,9 @@ export default function Home() {
           </p>
           <div className={s.statsGrid}>
             {[
-              { n: '68%', label: 'of employees admit to pasting sensitive data into AI tools without thinking twice' },
-              { n: '€4.2M', label: 'average cost of a GDPR fine. AI data leaks are the fastest-growing vector.' },
-              { n: '2026', label: 'EU AI Act enforcement is live. Auditors and enterprise buyers are asking for proof of AI governance controls.' },
+              { n: '11', label: 'data types detected — email, IBAN, card numbers, passwords, national IDs, API keys, and more' },
+              { n: '5 min', label: 'to deploy across your whole team. Admin sets policy, shares an install link, done.' },
+              { n: '0 bytes', label: 'of prompt content ever stored. Detection runs locally in the browser, not on our servers.' },
             ].map(({ n, label }) => (
               <div key={n} className={s.statCard}>
                 <span className={s.statNum}>{n}</span>
@@ -245,8 +245,8 @@ export default function Home() {
               },
               {
                 tag: 'EU AI Act · Art. 4',
-                title: 'AI literacy training',
-                body: 'Progressive in-browser lessons teach employees why data matters as they work. Literacy scores tracked per team member.',
+                title: 'Company AI policy',
+                body: 'Set rules by data type — block, warn, or allow. Policy applies to every team member the moment they install the extension. No config per employee.',
               },
               {
                 tag: 'EU AI Act · Art. 12',
@@ -255,8 +255,8 @@ export default function Home() {
               },
               {
                 tag: 'EU AI Act · Art. 10',
-                title: 'AI tool inventory',
-                body: 'Auto-discovers every AI tool your team uses. Admin approves, flags, or restricts each one. Documented control.',
+                title: 'AI platform visibility',
+                body: 'Every incident is tagged with the AI tool it happened on — ChatGPT, Claude, Gemini, Copilot. See where your team is using AI and where sensitive data is at risk.',
               },
               {
                 tag: 'SOC 2 / ISO 27001',
@@ -295,10 +295,10 @@ export default function Home() {
       <section className={s.cta}>
         <div className={s.ctaInner}>
           <h2 className={s.ctaH2}>
-            Start protecting your data.<br />Start proving it.
+            Set your policy once.<br />Protect every prompt from day one.
           </h2>
           <p className={s.ctaSub}>
-            Set up in 5 minutes. No code. No IT ticket. No credit card.
+            5 minutes to deploy. No code. No IT ticket. No credit card.
           </p>
           <div className={s.heroCtas}>
             <Link href="/signup" className={s.btnPrimary}>
