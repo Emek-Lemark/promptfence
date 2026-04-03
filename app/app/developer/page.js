@@ -162,10 +162,10 @@ export default function DeveloperPage() {
       </div>
 
       {/* Quick start callout */}
-      <div className="card" style={{ background: '#f0f9ff', border: '1px solid #bae6fd', marginBottom: 24 }}>
+      <div className="card" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)', marginBottom: 24 }}>
         <p style={{ margin: 0, fontSize: 13 }}>
           <strong>One-line integration:</strong>{' '}
-          <code style={{ background: '#e0f2fe', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>
+          <code style={{ background: 'rgba(124,58,237,0.15)', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>
             openai.baseURL = &quot;{process.env.NEXT_PUBLIC_BASE_URL || 'https://app.promptfence.ai'}/api/v1/proxy/openai&quot;
           </code>{' '}
   PromptFence scans every prompt before it reaches the model.
@@ -261,16 +261,16 @@ export default function DeveloperPage() {
 
                     {/* Revealed key banner */}
                     {revealedKey?.projectId === project.id && (
-                      <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, padding: 12, marginBottom: 16 }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#15803d', margin: '0 0 6px' }}>
+                      <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#4ade80', margin: '0 0 6px' }}>
                           ✅ API key created. Save it now as it will not be shown again.
                         </p>
-                        <code style={{ fontSize: 12, background: '#dcfce7', padding: '6px 10px', borderRadius: 4, display: 'block', wordBreak: 'break-all' }}>
+                        <code style={{ fontSize: 12, background: 'rgba(34,197,94,0.1)', padding: '6px 10px', borderRadius: 4, display: 'block', wordBreak: 'break-all', color: '#4ade80' }}>
                           {revealedKey.key}
                         </code>
                         <button
                           onClick={() => { navigator.clipboard.writeText(revealedKey.key); }}
-                          style={{ marginTop: 6, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', textDecoration: 'underline' }}
+                          style={{ marginTop: 6, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', color: '#4ade80', textDecoration: 'underline' }}
                         >
                           Copy to clipboard
                         </button>
@@ -331,8 +331,8 @@ export default function DeveloperPage() {
                               </td>
                               <td style={{ padding: '8px' }}>
                                 <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4,
-                                  background: k.env === 'live' ? '#fef3c7' : '#e0e7ff',
-                                  color: k.env === 'live' ? '#92400e' : '#3730a3' }}>
+                                  background: k.env === 'live' ? 'rgba(245,158,11,0.15)' : 'rgba(124,58,237,0.15)',
+                                  color: k.env === 'live' ? '#fbbf24' : '#c4b5fd' }}>
                                   {k.env}
                                 </span>
                               </td>
@@ -410,12 +410,12 @@ export default function DeveloperPage() {
           {/* Filters */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             <select value={logProject} onChange={e => setLogProject(e.target.value)}
-              style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 6, background: '#fff' }}>
+              style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg)', color: 'var(--text-2)' }}>
               <option value="">All projects</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <select value={logAction} onChange={e => setLogAction(e.target.value)}
-              style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 6, background: '#fff' }}>
+              style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg)', color: 'var(--text-2)' }}>
               <option value="">All actions</option>
               <option value="ALLOW">Allow</option>
               <option value="WARN">Warn</option>

@@ -401,8 +401,9 @@ const response = await openai.chat.completions.create({
           </div>
           <div className={s.footerLinks}>
             <a href="https://chromewebstore.google.com/detail/promptfence" target="_blank" rel="noopener">Chrome</a>
-            <a href="#" target="_blank" rel="noopener">Firefox</a>
             <Link href="/developer/docs">API Docs</Link>
+            <Link href="/security">Security</Link>
+            <Link href="/legal/dpa">DPA</Link>
             <Link href="/privacy">Privacy</Link>
             <a href="mailto:hello@promptfence.ai">Contact</a>
           </div>

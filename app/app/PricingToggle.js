@@ -7,6 +7,15 @@ import Link from 'next/link';
 export default function PricingToggle() {
   const [annual, setAnnual] = useState(false);
 
+  // Per-seat pricing: monthly vs annual (-20%)
+  const teamMonthly    = 10;
+  const teamAnnual     = 8;
+  const businessMonthly = 15;
+  const businessAnnual  = 12;
+
+  const teamPrice     = annual ? teamAnnual     : teamMonthly;
+  const businessPrice = annual ? businessAnnual : businessMonthly;
+
   return (
     <>
       <div className={styles.pricingToggle}>
@@ -25,7 +34,7 @@ export default function PricingToggle() {
 
       <div className={styles.pricingGrid}>
 
-        {/* Free */}
+        {/* Free extension */}
         <div className={styles.pricingCard}>
           <div className={styles.pricingCardHeader}>
             <h3>Personal</h3>
@@ -57,12 +66,15 @@ export default function PricingToggle() {
           <div className={styles.pricingBadge}>MOST POPULAR</div>
           <div className={styles.pricingCardHeader}>
             <h3>Team</h3>
-            <p className={styles.pricingCardDesc}>Up to 25 seats</p>
+            <p className={styles.pricingCardDesc}>10-seat minimum</p>
           </div>
           <div className={styles.pricingCardPrice}>
-            <span className={styles.pricingAmount}>€{annual ? '39' : '49'}</span>
-            <span className={styles.pricingPeriod}>/month{annual ? ', billed annually' : ''}</span>
+            <span className={styles.pricingAmount}>€{teamPrice}</span>
+            <span className={styles.pricingPeriod}>/seat/month{annual ? ', billed annually' : ''}</span>
           </div>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '-4px 0 16px', fontStyle: 'italic' }}>
+            From €{teamPrice * 10}/month for 10 seats
+          </p>
           <ul className={styles.pricingFeatures}>
             <li>Everything in Personal</li>
             <li>Admin dashboard</li>
@@ -70,7 +82,8 @@ export default function PricingToggle() {
             <li>Team invite via email</li>
             <li>Aggregate audit trail + CSV export</li>
             <li>EU AI Act compliance reports</li>
-            <li>AI literacy training scores</li>
+            <li>Generated AI Use Policy document</li>
+            <li>ISO 27001 and SOC 2 control mapping</li>
           </ul>
           <Link href="/signup" className={`${styles.pricingBtn} ${styles.pricingBtnPrimary}`}>
             Start free 14-day trial
@@ -82,19 +95,23 @@ export default function PricingToggle() {
         <div className={styles.pricingCard}>
           <div className={styles.pricingCardHeader}>
             <h3>Business</h3>
-            <p className={styles.pricingCardDesc}>Up to 100 seats</p>
+            <p className={styles.pricingCardDesc}>10-seat minimum, includes API</p>
           </div>
           <div className={styles.pricingCardPrice}>
-            <span className={styles.pricingAmount}>€{annual ? '119' : '149'}</span>
-            <span className={styles.pricingPeriod}>/month{annual ? ', billed annually' : ''}</span>
+            <span className={styles.pricingAmount}>€{businessPrice}</span>
+            <span className={styles.pricingPeriod}>/seat/month{annual ? ', billed annually' : ''}</span>
           </div>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '-4px 0 16px', fontStyle: 'italic' }}>
+            From €{businessPrice * 10}/month for 10 seats
+          </p>
           <ul className={styles.pricingFeatures}>
             <li>Everything in Team</li>
-            <li>Developer API + OpenAI proxy</li>
+            <li>Developer API + LLM proxy</li>
+            <li>Anthropic, OpenAI, Gemini, Groq support</li>
+            <li>Webhook events</li>
             <li>Priority support</li>
             <li>DPA included</li>
             <li>Custom detection rules</li>
-            <li>Webhook events</li>
             <li>Weekly digest emails</li>
           </ul>
           <Link href="/signup" className={`${styles.pricingBtn} ${styles.pricingBtnPrimary}`}>

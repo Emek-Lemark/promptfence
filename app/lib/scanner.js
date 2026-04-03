@@ -48,23 +48,86 @@ function isValidCreditCard(cardNumber) {
   return sum % 10 === 0;
 }
 
+// ── National ID validators ────────────────────────────────────────────────────
+
+/** Netherlands BSN — elfproef (11-proof) */
+function bsnIsValid(raw) {
+  const d = raw.replace(/\D/g, '');
+  if (d.length !== 9) return false;
+  let sum = 0;
+  for (let i = 0; i < 8; i++) sum += parseInt(d[i], 10) * (9 - i);
+  sum -= parseInt(d[8], 10);
+  return sum > 0 && sum % 11 === 0;
+}
+
+/** Denmark CPR — basic date-part sanity check (modulo-11 deprecated post-2007) */
+function cprIsValid(raw) {
+  const d = raw.replace(/\D/g, '');
+  if (d.length !== 10) return false;
+  const day = parseInt(d.slice(0, 2), 10);
+  const mon = parseInt(d.slice(2, 4), 10);
+  return day >= 1 && day <= 31 && mon >= 1 && mon <= 12;
+}
+
+/** Swedish personnummer — Luhn check on last 10 digits */
+function personnummerIsValid(raw) {
+  const d = raw.replace(/[^\d]/g, '');
+  // accept 10 or 12 digit forms; validate last 10
+  const digits = d.length === 12 ? d.slice(2) : d;
+  if (digits.length !== 10) return false;
+  // Luhn on first 9 digits; last digit is check
+  const nums = digits.slice(0, 9).split('').map(Number);
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let v = nums[i] * (i % 2 === 0 ? 2 : 1);
+    if (v > 9) v -= 9;
+    sum += v;
+  }
+  return (10 - (sum % 10)) % 10 === parseInt(digits[9], 10);
+}
+
+/** Romania CNP — modulo-11 check */
+function cnpIsValid(raw) {
+  const d = raw.replace(/\D/g, '');
+  if (d.length !== 13) return false;
+  const weights = [2,7,9,1,4,6,3,5,8,2,7,9];
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += parseInt(d[i], 10) * weights[i];
+  const check = sum % 11 === 10 ? 1 : sum % 11;
+  return check === parseInt(d[12], 10);
+}
+
 // ── National ID patterns (EU) ────────────────────────────────────────────────
 
 const NATIONAL_ID_PATTERNS = [
+  // Denmark — CPR: DDMMYY-NNNN
+  { type: 'NATIONAL_ID', regex: /\b\d{6}-\d{4}\b/g, country: 'DK', validate: cprIsValid },
+  // Sweden — personnummer: YYMMDD-NNNN or YYYYMMDD-NNNN
+  { type: 'NATIONAL_ID', regex: /\b\d{6}[-+]\d{4}\b/g, country: 'SE', validate: personnummerIsValid },
+  // Finland — HETU: DDMMYY[+\-A]NNNc
+  { type: 'NATIONAL_ID', regex: /\b\d{6}[+\-A]\d{3}[0-9A-FHJK-NPR-Y]\b/g, country: 'FI' },
+  // Norway — fødselsnummer: DDMMYYNNNKK (11 digits, date-separated context)
+  { type: 'NATIONAL_ID', regex: /\b\d{2}[01]\d[0-9]\d{2}\d{5}\b/g, country: 'NO' },
   // Spain — DNI: 8 digits + 1 letter
   { type: 'NATIONAL_ID', regex: /\b\d{8}[A-HJ-NP-TV-Z]\b/g, country: 'ES' },
-  // Netherlands — BSN: 9 digits (first digit 1-9)
-  { type: 'NATIONAL_ID', regex: /\b[1-9]\d{8}\b/g, country: 'NL' },
+  // Netherlands — BSN: 9 digits (elfproef validated)
+  { type: 'NATIONAL_ID', regex: /\b[1-9]\d{8}\b/g, country: 'NL', validate: bsnIsValid },
   // France — INSEE: 15 digits starting 1 or 2
   { type: 'NATIONAL_ID', regex: /\b[12]\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{3}\s?\d{3}\s?\d{2}\b/g, country: 'FR' },
-  // Italy — Codice Fiscale: 6 letters + 2 digits + 1 letter + 2 digits + 1 letter + 3 digits + 1 letter
+  // Italy — Codice Fiscale: 6 letters + 2 digits + letter + 2 digits + letter + 3 digits + letter
   { type: 'NATIONAL_ID', regex: /\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b/g, country: 'IT' },
   // Poland — PESEL: 11 digits
   { type: 'NATIONAL_ID', regex: /\b\d{11}\b/g, country: 'PL' },
+  // Romania — CNP: 13 digits (modulo-11 validated)
+  { type: 'NATIONAL_ID', regex: /\b[1-9]\d{12}\b/g, country: 'RO', validate: cnpIsValid },
   // Portugal — NIF: 9 digits starting 1-3 or 5-9
   { type: 'NATIONAL_ID', regex: /\b[125689]\d{8}\b/g, country: 'PT' },
-  // Belgium — NISS: 11 digits
+  // Belgium — NISS: NN.NN.NN-NNN.NN format
   { type: 'NATIONAL_ID', regex: /\b\d{2}[.\-]\d{2}[.\-]\d{2}[.\-]\d{3}[.\-]\d{2}\b/g, country: 'BE' },
+  // Austria — Sozialversicherungsnummer: 4 serial + 6 DOB digits
+  { type: 'NATIONAL_ID', regex: /\b\d{4}\s\d{6}\b/g, country: 'AT' },
+  // Greece — AFM (tax number): 9 digits starting 1-9
+  { type: 'NATIONAL_ID', regex: /\b[1-9]\d{8}\b/g, country: 'GR' },
 ];
 
 // VAT number patterns (EU)
@@ -179,10 +242,12 @@ function detectMatchesWithRanges(text, enabledTypes) {
 
   // NATIONAL_ID
   if (enabled.NATIONAL_ID !== false) {
-    for (const { type, regex } of NATIONAL_ID_PATTERNS) {
+    for (const { type, regex, validate } of NATIONAL_ID_PATTERNS) {
       let m;
       while ((m = regex.exec(text)) !== null) {
-        matches.push({ type, start: m.index, end: m.index + m[0].length, value: m[0] });
+        if (!validate || validate(m[0])) {
+          matches.push({ type, start: m.index, end: m.index + m[0].length, value: m[0] });
+        }
       }
     }
   }

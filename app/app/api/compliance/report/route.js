@@ -62,7 +62,8 @@ export async function GET(request) {
     lines.push(``);
 
     // Section 1: Team AI Literacy
-    lines.push(`SECTION 1 — TEAM AI LITERACY (EU AI Act Art. 4)`);
+    lines.push(`SECTION 1 — TEAM AI LITERACY`);
+    lines.push(`EU AI Act Art. 4 | ISO 27001 A.6.3 (Awareness & Training) | SOC 2 CC1.4 (Competence)`);
     lines.push(`Email,Role,Extension Installed,Policy Acknowledged,Acknowledged At,Blocks,Warnings,Last Active`);
     for (const m of members) {
       lines.push([
@@ -81,7 +82,8 @@ export async function GET(request) {
     lines.push(``);
 
     // Section 2: AI Events Log
-    lines.push(`SECTION 2 — AI INTERACTION LOG (EU AI Act Art. 12)`);
+    lines.push(`SECTION 2 — AI INTERACTION LOG`);
+    lines.push(`EU AI Act Art. 12 | ISO 27001 A.8.16 (Monitoring) + A.8.22 (Filtering) | SOC 2 CC7.2 (System Monitoring) + CC6.7 (Data Transmission Controls)`);
     lines.push(`Timestamp,User,AI Platform,Data Types Detected,Action,Reviewed,Reviewed At,Note`);
     for (const e of events) {
       let types = e.data_types;
@@ -105,7 +107,8 @@ export async function GET(request) {
     lines.push(``);
 
     // Section 3: AI Tool Inventory
-    lines.push(`SECTION 3 — AI TOOL INVENTORY (EU AI Act Art. 10)`);
+    lines.push(`SECTION 3 — AI TOOL INVENTORY`);
+    lines.push(`EU AI Act Art. 10 | ISO 27001 A.5.10 (Acceptable Use) + A.5.9 (Asset Inventory) | SOC 2 CC6.3 (Access to Data)`);
     lines.push(`AI Platform,Users,Sessions,Status,Risk Level,Last Seen,Notes`);
     for (const d of discovered) {
       const tool = toolMap[d.ai_domain] || {};
@@ -121,9 +124,34 @@ export async function GET(request) {
     }
     lines.push(``);
 
+    // Section 4: Control Framework Mapping
+    lines.push(`SECTION 4 — CONTROL FRAMEWORK MAPPING`);
+    lines.push(`Framework,Control ID,Control Name,PromptFence Implementation,Evidence Location`);
+    const controlMap = [
+      ['EU AI Act', 'Art. 4',  'AI Literacy',                     'Policy acknowledgement tracking per team member',         'Section 1 of this report'],
+      ['EU AI Act', 'Art. 10', 'Data Governance',                  'AI tool inventory with approval status and risk rating',   'Section 3 of this report'],
+      ['EU AI Act', 'Art. 12', 'Record Keeping',                   'Immutable event log of all AI interactions with data types','Section 2 of this report'],
+      ['EU AI Act', 'Art. 14', 'Human Oversight',                  'Block event review workflow with acknowledgement and notes','Section 2 of this report'],
+      ['ISO 27001', 'A.5.1',   'Policies for Information Security','Generated AI Use Policy document available in dashboard',   'PromptFence Compliance tab'],
+      ['ISO 27001', 'A.5.9',   'Inventory of Assets',              'Automatic discovery and classification of AI tools used',   'Section 3 of this report'],
+      ['ISO 27001', 'A.5.10',  'Acceptable Use',                   'Configurable allow/warn/block policy per data type',        'PromptFence Policy tab'],
+      ['ISO 27001', 'A.6.3',   'Awareness & Training',             'Team training completion rate and policy acknowledgement',  'Section 1 of this report'],
+      ['ISO 27001', 'A.8.16',  'Monitoring Activities',            'Real-time detection and logging of sensitive data in prompts','Section 2 of this report'],
+      ['ISO 27001', 'A.8.22',  'Filtering of Web Services',        'Browser extension blocks/warns on AI platforms per policy', 'Section 2 of this report'],
+      ['SOC 2',     'CC1.4',   'Competence',                       'AI literacy training completion tracked per employee',      'Section 1 of this report'],
+      ['SOC 2',     'CC6.1',   'Logical Access Controls',          'Role-based admin access; install code required to join org','PromptFence Team tab'],
+      ['SOC 2',     'CC6.3',   'Access to Data',                   'Policy-enforced restrictions on data types sent to AI',     'PromptFence Policy tab'],
+      ['SOC 2',     'CC6.7',   'Data Transmission Controls',       'Prevents transmission of PII to external AI services',     'Section 2 of this report'],
+      ['SOC 2',     'CC7.2',   'System Monitoring',                'Event log captures all AI interactions in the audit period','Section 2 of this report'],
+    ];
+    for (const row of controlMap) {
+      lines.push(row.map(q).join(','));
+    }
+    lines.push(``);
+
     // Footer
     lines.push(`This report was generated automatically by PromptFence.`);
-    lines.push(`It documents active technical controls for EU AI Act compliance purposes.`);
+    lines.push(`It documents active technical controls for EU AI Act compliance and maps to ISO 27001:2022 Annex A and SOC 2 Trust Service Criteria.`);
     lines.push(`For questions contact: privacy@promptfence.ai`);
 
     const csv = lines.join('\n');
